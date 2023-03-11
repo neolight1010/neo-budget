@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-struct ExpenditureLog {
+pub struct ExpenditureLog {
     product_to_total: HashMap<String, f64>,
     category_to_total: HashMap<String, f64>,
 
