@@ -1,8 +1,10 @@
 use std::collections::HashMap;
 
+pub type Price = f64;
+
 pub struct ExpenditureLog {
-    product_totals: HashMap<String, f64>,
-    category_totals: HashMap<String, f64>,
+    product_totals: HashMap<String, Price>,
+    category_totals: HashMap<String, Price>,
 
     product_categories: HashMap<String, String>,
 }
@@ -22,7 +24,7 @@ impl ExpenditureLog {
             .insert(product.to_owned(), category.to_owned());
     }
 
-    pub fn add_log(&mut self, product: &str, price: f64) {
+    pub fn add_log(&mut self, product: &str, price: Price) {
         increase_total_or_insert(&mut self.product_totals, product, price);
 
         if let Some(category) = self.product_categories.get(product) {
@@ -30,18 +32,18 @@ impl ExpenditureLog {
         }
     }
 
-    pub fn product_total(&self, product: &str) -> f64 {
+    pub fn product_total(&self, product: &str) -> Price {
         self.product_totals
             .get(product)
             .unwrap_or(&0.0)
             .to_owned()
     }
 
-    pub fn product_totals(&self) -> HashMap<String, f64> {
+    pub fn product_totals(&self) -> HashMap<String, Price> {
         self.product_totals.clone()
     }
 
-    pub fn category_total(&self, category: &str) -> f64 {
+    pub fn category_total(&self, category: &str) -> Price {
         self.category_totals
             .get(category)
             .unwrap_or(&0.0)
@@ -49,7 +51,7 @@ impl ExpenditureLog {
     }
 }
 
-fn increase_total_or_insert(total_map: &mut HashMap<String, f64>, key: &str, addend: f64) {
+fn increase_total_or_insert(total_map: &mut HashMap<String, Price>, key: &str, addend: Price) {
     let current_total = total_map.get(key).unwrap_or(&0.0);
 
     total_map.insert(key.to_owned(), current_total + addend);

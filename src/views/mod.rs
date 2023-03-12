@@ -4,7 +4,7 @@ use cursive::{
     view::{Nameable, Resizable},
     views::{Dialog, EditView, LinearLayout, ListView, TextView},
 };
-use neo_budget::ExpenditureLog;
+use neo_budget::{ExpenditureLog, Price};
 
 pub fn add_log_view() -> Dialog {
     let layout = LinearLayout::new(cursive::direction::Orientation::Vertical)
@@ -25,7 +25,7 @@ pub fn add_log_view() -> Dialog {
                 .find_name::<EditView>("add_log_price")
                 .expect("Couldn't find add_log_price")
                 .get_content()
-                .parse::<f64>();
+                .parse::<Price>();
 
             let mut add_log_result = siv
                 .find_name::<TextView>("add_log_result")
@@ -48,7 +48,7 @@ pub fn add_log_view() -> Dialog {
         .h_align(cursive::align::HAlign::Center)
 }
 
-pub fn view_product_totals_view(product_totals: &HashMap<String, f64>) -> ListView {
+pub fn view_product_totals_view(product_totals: &HashMap<String, Price>) -> ListView {
     let mut product_list = ListView::new();
 
     for (product, total) in product_totals.iter() {
