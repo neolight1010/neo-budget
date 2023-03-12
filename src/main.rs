@@ -28,11 +28,10 @@ fn menu_view() -> SelectView<MenuSelection> {
     menu.add_item("Product totals", MenuSelection::ViewProductTotals);
 
     menu.set_on_submit(|siv, selection| {
-        let product_to_total = siv
+        let product_totals = siv
             .user_data::<ExpenditureLog>()
             .expect("Couldn't find expenditure log.")
-            .product_to_total
-            .clone();
+            .product_totals();
 
         siv.pop_layer();
 
@@ -42,7 +41,7 @@ fn menu_view() -> SelectView<MenuSelection> {
             }
 
             MenuSelection::ViewProductTotals => {
-                siv.add_layer(view_product_totals_view(&product_to_total));
+                siv.add_layer(view_product_totals_view(&product_totals));
             }
         }
     });
