@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 pub struct ExpenditureLog {
-    product_to_total: HashMap<String, f64>,
+    pub product_to_total: HashMap<String, f64>,
     category_to_total: HashMap<String, f64>,
 
     product_to_category: HashMap<String, String>,
