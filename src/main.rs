@@ -33,8 +33,6 @@ fn menu_view() -> SelectView<MenuSelection> {
             .expect("Couldn't find expenditure log.")
             .product_totals();
 
-        siv.pop_layer();
-
         match selection {
             MenuSelection::AddLog => {
                 siv.add_layer(add_log_view());
