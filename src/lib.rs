@@ -49,6 +49,10 @@ impl ExpenditureLog {
             .unwrap_or(&0.0)
             .to_owned()
     }
+
+    pub fn category_totals(&self) -> HashMap<String, Price> {
+        self.category_totals.clone()
+    }
 }
 
 fn increase_total_or_insert(total_map: &mut HashMap<String, Price>, key: &str, addend: Price) {
@@ -92,5 +96,18 @@ mod tests {
         expected_totals.insert("prod1".to_owned(), 10.0);
 
         assert_eq!(expenditure_log.product_totals(), expected_totals);
+    }
+
+    #[test]
+    fn category_totals() {
+        let mut expenditure_log = ExpenditureLog::new();
+
+        expenditure_log.add_product("prod1", "cat1");
+        expenditure_log.add_log("prod1", 10.0);
+
+        let mut expected_totals = HashMap::new();
+        expected_totals.insert("cat1".to_owned(), 10.0);
+
+        assert_eq!(expenditure_log.category_totals(), expected_totals);
     }
 }

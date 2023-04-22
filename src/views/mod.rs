@@ -51,14 +51,14 @@ pub fn add_log_view() -> Dialog {
         .h_align(cursive::align::HAlign::Center)
 }
 
-pub fn view_product_totals_view(product_totals: &HashMap<String, Price>) -> Dialog {
-    let mut product_list = ListView::new();
+pub fn view_totals_view(totals: &HashMap<String, Price>) -> Dialog {
+    let mut list_view = ListView::new();
 
-    for (product, total) in product_totals.iter() {
-        product_list.add_child(product, TextView::new(format!("{total:.2}")));
+    for (product, total) in totals {
+        list_view.add_child(product, TextView::new(format!("{total:.2}")));
     }
 
-    Dialog::around(product_list).button("Back", |siv| {
+    Dialog::around(list_view).button("Back", |siv| {
         siv.pop_layer();
     })
 }
