@@ -43,36 +43,11 @@ impl ExpenditureLog {
 
 pub struct ExpenditureLogStats {
     log: ExpenditureLog,
-
-    product_totals: HashMap<String, Price>,
-    category_totals: HashMap<String, Price>,
-
-    product_categories: HashMap<String, String>,
 }
 
 impl ExpenditureLogStats {
     pub fn new(log: ExpenditureLog) -> Self {
-        Self {
-            log,
-
-            product_totals: HashMap::new(),
-            category_totals: HashMap::new(),
-
-            product_categories: HashMap::new(),
-        }
-    }
-
-    pub fn add_product(&mut self, product: &str, category: &str) {
-        self.product_categories
-            .insert(product.to_owned(), category.to_owned());
-    }
-
-    pub fn add_log(&mut self, product: &str, price: Price) {
-        increase_total_or_insert(&mut self.product_totals, product, price);
-
-        if let Some(category) = self.product_categories.get(product) {
-            increase_total_or_insert(&mut self.category_totals, category, price);
-        }
+        Self { log }
     }
 
     pub fn product_total(&self, product: &str) -> Price {
@@ -128,12 +103,6 @@ impl ExpenditureLogStats {
 
         category_totals
     }
-}
-
-fn increase_total_or_insert(total_map: &mut HashMap<String, Price>, key: &str, addend: Price) {
-    let current_total = total_map.get(key).unwrap_or(&0.0);
-
-    total_map.insert(key.to_owned(), current_total + addend);
 }
 
 #[cfg(test)]
