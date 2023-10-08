@@ -2,15 +2,30 @@ use std::collections::HashMap;
 
 pub type Price = f64;
 
-pub struct ExpenditureLog {}
+pub struct ExpenditureLog {
+    logs: Vec<(String, Price)>,
+}
 
 impl ExpenditureLog {
     pub fn new() -> Self {
-        Self {}
+        Self { logs: Vec::new() }
+    }
+
+    pub fn with_log(self, product: &str, price: Price) -> Self {
+        Self {
+            logs: self
+                .logs
+                .into_iter()
+                .chain(vec![(product.to_owned(), price)])
+                .collect(),
+            ..self
+        }
     }
 }
 
 pub struct ExpenditureLogStats {
+    log: ExpenditureLog,
+
     product_totals: HashMap<String, Price>,
     category_totals: HashMap<String, Price>,
 
@@ -20,6 +35,8 @@ pub struct ExpenditureLogStats {
 impl ExpenditureLogStats {
     pub fn new(log: ExpenditureLog) -> Self {
         Self {
+            log,
+
             product_totals: HashMap::new(),
             category_totals: HashMap::new(),
 
@@ -41,7 +58,12 @@ impl ExpenditureLogStats {
     }
 
     pub fn product_total(&self, product: &str) -> Price {
-        self.product_totals.get(product).unwrap_or(&0.0).to_owned()
+        self.log
+            .logs
+            .iter()
+            .filter(|(p, _)| p == product)
+            .map(|(_, p)| p)
+            .sum()
     }
 
     pub fn product_totals(&self) -> HashMap<String, Price> {
@@ -74,11 +96,10 @@ mod tests {
 
     #[test]
     fn expenditure_log_product_total() {
-        let mut expenditure_log = ExpenditureLogStats::new(ExpenditureLog::new());
+        let log = ExpenditureLog::new().with_log("prod1", 10.0);
+        let stats = ExpenditureLogStats::new(log);
 
-        expenditure_log.add_log("prod1", 10.0);
-
-        assert_eq!(expenditure_log.product_total("prod1"), 10.0);
+        assert_eq!(stats.product_total("prod1"), 10.0);
     }
 
     #[test]
