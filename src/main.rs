@@ -1,5 +1,5 @@
 use cursive::views::{Panel, SelectView};
-use neo_budget::ExpenditureLogStats;
+use neo_budget::{ExpenditureLog, ExpenditureLogStats};
 use views::{add_log_view, view_totals_view};
 
 mod views;
@@ -11,7 +11,7 @@ enum MenuSelection {
 }
 
 fn main() {
-    let mut log = ExpenditureLogStats::new();
+    let mut log = ExpenditureLogStats::new(ExpenditureLog::new());
     log.add_product("Bread", "Food");
     log.add_product("Eggs", "Food");
     log.add_log("Bread", 10.0);

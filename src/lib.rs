@@ -2,6 +2,14 @@ use std::collections::HashMap;
 
 pub type Price = f64;
 
+pub struct ExpenditureLog {}
+
+impl ExpenditureLog {
+    pub fn new() -> Self {
+        Self {}
+    }
+}
+
 pub struct ExpenditureLogStats {
     product_totals: HashMap<String, Price>,
     category_totals: HashMap<String, Price>,
@@ -10,7 +18,7 @@ pub struct ExpenditureLogStats {
 }
 
 impl ExpenditureLogStats {
-    pub fn new() -> Self {
+    pub fn new(log: ExpenditureLog) -> Self {
         Self {
             product_totals: HashMap::new(),
             category_totals: HashMap::new(),
@@ -33,10 +41,7 @@ impl ExpenditureLogStats {
     }
 
     pub fn product_total(&self, product: &str) -> Price {
-        self.product_totals
-            .get(product)
-            .unwrap_or(&0.0)
-            .to_owned()
+        self.product_totals.get(product).unwrap_or(&0.0).to_owned()
     }
 
     pub fn product_totals(&self) -> HashMap<String, Price> {
@@ -65,11 +70,11 @@ fn increase_total_or_insert(total_map: &mut HashMap<String, Price>, key: &str, a
 mod tests {
     use std::collections::HashMap;
 
-    use super::ExpenditureLogStats;
+    use super::{ExpenditureLog, ExpenditureLogStats};
 
     #[test]
     fn expenditure_log_product_total() {
-        let mut expenditure_log = ExpenditureLogStats::new();
+        let mut expenditure_log = ExpenditureLogStats::new(ExpenditureLog::new());
 
         expenditure_log.add_log("prod1", 10.0);
 
@@ -78,7 +83,7 @@ mod tests {
 
     #[test]
     fn expenditure_log_category_total() {
-        let mut expenditure_log = ExpenditureLogStats::new();
+        let mut expenditure_log = ExpenditureLogStats::new(ExpenditureLog::new());
 
         expenditure_log.add_product("prod1", "cat1");
         expenditure_log.add_log("prod1", 10.0);
@@ -88,7 +93,7 @@ mod tests {
 
     #[test]
     fn product_totals() {
-        let mut expenditure_log = ExpenditureLogStats::new();
+        let mut expenditure_log = ExpenditureLogStats::new(ExpenditureLog::new());
 
         expenditure_log.add_log("prod1", 10.0);
 
@@ -100,7 +105,7 @@ mod tests {
 
     #[test]
     fn category_totals() {
-        let mut expenditure_log = ExpenditureLogStats::new();
+        let mut expenditure_log = ExpenditureLogStats::new(ExpenditureLog::new());
 
         expenditure_log.add_product("prod1", "cat1");
         expenditure_log.add_log("prod1", 10.0);
