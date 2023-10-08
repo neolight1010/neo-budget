@@ -113,7 +113,19 @@ impl ExpenditureLogStats {
     }
 
     pub fn category_totals(&self) -> HashMap<String, Price> {
-        self.category_totals.clone()
+        let mut category_totals = HashMap::<String, Price>::new();
+
+        for (product, price) in self.log.logs.iter() {
+            if let Some(category) = self.log.product_categories.get(product) {
+                if let Some(current_price) = category_totals.get(category) {
+                    category_totals.insert(category.to_owned(), current_price + price);
+                }
+
+                category_totals.insert(category.to_owned(), price.to_owned());
+            }
+        }
+
+        category_totals
     }
 }
 
@@ -125,8 +137,6 @@ fn increase_total_or_insert(total_map: &mut HashMap<String, Price>, key: &str, a
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
-
     use super::{ExpenditureLog, ExpenditureLogStats};
 
     #[test]
@@ -157,14 +167,11 @@ mod tests {
 
     #[test]
     fn category_totals() {
-        let mut expenditure_log = ExpenditureLogStats::new(ExpenditureLog::new());
+        let log = ExpenditureLog::new()
+            .with_product("prod1", "cat1")
+            .with_log("prod1", 10.0);
+        let expenditure_log = ExpenditureLogStats::new(log);
 
-        expenditure_log.add_product("prod1", "cat1");
-        expenditure_log.add_log("prod1", 10.0);
-
-        let mut expected_totals = HashMap::new();
-        expected_totals.insert("cat1".to_owned(), 10.0);
-
-        assert_eq!(expenditure_log.category_totals(), expected_totals);
+        assert_eq!(expenditure_log.category_totals().get("cat1"), Some(&10.0));
     }
 }
