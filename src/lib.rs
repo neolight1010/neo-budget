@@ -84,7 +84,16 @@ impl ExpenditureLogStats {
     }
 
     pub fn product_totals(&self) -> HashMap<String, Price> {
-        self.product_totals.clone()
+        let mut product_totals = HashMap::<String, Price>::new();
+        for (product, price) in self.log.logs.iter() {
+            if let Some(current_price) = product_totals.get(product) {
+                product_totals.insert(product.to_owned(), current_price + price);
+            } else {
+                product_totals.insert(product.to_owned(), price.to_owned());
+            }
+        }
+
+        product_totals
     }
 
     pub fn category_total(&self, category: &str) -> Price {
@@ -140,14 +149,10 @@ mod tests {
 
     #[test]
     fn product_totals() {
-        let mut expenditure_log = ExpenditureLogStats::new(ExpenditureLog::new());
+        let log = ExpenditureLog::new().with_log("prod1", 10.0);
+        let expenditure_log = ExpenditureLogStats::new(log);
 
-        expenditure_log.add_log("prod1", 10.0);
-
-        let mut expected_totals = HashMap::new();
-        expected_totals.insert("prod1".to_owned(), 10.0);
-
-        assert_eq!(expenditure_log.product_totals(), expected_totals);
+        assert_eq!(expenditure_log.product_totals().get("prod1"), Some(&10.0));
     }
 
     #[test]
