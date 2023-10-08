@@ -11,11 +11,11 @@ enum MenuSelection {
 }
 
 fn main() {
-    let mut log = ExpenditureLogStats::new(ExpenditureLog::new());
-    log.add_product("Bread", "Food");
-    log.add_product("Eggs", "Food");
-    log.add_log("Bread", 10.0);
-    log.add_log("Eggs", 15.0);
+    let log = ExpenditureLog::new()
+        .with_product("Bread", "Food")
+        .with_product("Eggs", "Food")
+        .with_log("Bread", 10.0)
+        .with_log("Eggs", 15.0);
 
     let mut siv = cursive::default();
     siv.set_user_data(log);
@@ -33,11 +33,12 @@ fn menu_view() -> SelectView<MenuSelection> {
 
     menu.set_on_submit(|siv, selection| {
         let expenditure_log = siv
-            .user_data::<ExpenditureLogStats>()
+            .user_data::<ExpenditureLog>()
             .expect("Couldn't find expenditure log.");
 
-        let product_totals = expenditure_log.product_totals();
-        let category_totals = expenditure_log.category_totals();
+        let stats = ExpenditureLogStats::new(expenditure_log.clone());
+        let product_totals = stats.product_totals();
+        let category_totals = stats.category_totals();
 
         match selection {
             MenuSelection::AddLog => {

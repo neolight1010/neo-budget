@@ -4,7 +4,7 @@ use cursive::{
     view::{Nameable, Resizable},
     views::{Dialog, EditView, LinearLayout, ListView, TextView},
 };
-use neo_budget::{ExpenditureLogStats, Price};
+use neo_budget::{ExpenditureLog, Price};
 
 pub fn add_log_view() -> Dialog {
     let layout = LinearLayout::new(cursive::direction::Orientation::Vertical)
@@ -31,12 +31,11 @@ pub fn add_log_view() -> Dialog {
                 .find_name::<TextView>("add_log_result")
                 .expect("Couldn't find add_log_result");
 
+            let current_log = siv.user_data::<ExpenditureLog>().unwrap().clone();
+
             match add_log_price {
                 Ok(price) => {
-                    siv.with_user_data(|expenditure_log: &mut ExpenditureLogStats| {
-                        expenditure_log.add_log(&add_log_name, price);
-                    });
-
+                    siv.set_user_data(current_log.with_log(&add_log_name, price));
                     add_log_result.set_content("Log added successfully!");
                 }
 

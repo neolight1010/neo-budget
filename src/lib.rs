@@ -4,6 +4,7 @@ pub type Price = f64;
 type Product = String;
 type Category = String;
 
+#[derive(Clone)]
 pub struct ExpenditureLog {
     logs: Vec<(String, Price)>,
     product_categories: HashMap<Product, Category>,
