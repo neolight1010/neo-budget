@@ -1,3 +1,7 @@
+use std::env;
+use std::fs;
+use std::fs::File;
+
 use serde::Deserialize;
 
 use crate::ExpenditureLog;
@@ -20,15 +24,22 @@ struct JSONFinance {
     logs: Vec<JSONLog>,
 }
 
-struct JsonFinanceLoader {
+struct JSONFinanceLoader {
     json: String,
 }
 
-impl JsonFinanceLoader {
+impl JSONFinanceLoader {
     fn new(json: &str) -> Self {
         Self {
             json: json.to_string(),
         }
+    }
+
+    fn from_env() -> Result<Self, String> {
+        let json_file_path = env::var("FINANCE_FILE_PATH").map_err(|_| "")?;
+        let json_content = fs::read_to_string(json_file_path).map_err(|_| "")?;
+
+        Ok(Self { json: json_content })
     }
 
     fn load(&self) -> Result<ExpenditureLog, serde_json::Error> {
@@ -49,12 +60,15 @@ impl JsonFinanceLoader {
 
 #[cfg(test)]
 mod tests {
+    use std::fs::File;
+    use std::io::Write;
+
+    use tempfile::TempDir;
+
     use super::*;
 
-    #[test]
-    fn test_loader_ok() {
-        let loader = JsonFinanceLoader::new(
-            r#"
+    fn json_finance_content() -> String {
+        r#"
 {
     "products": [
         {
@@ -77,11 +91,11 @@ mod tests {
         }
     ]
 }
-"#,
-        );
+"#
+        .to_string()
+    }
 
-        let loaded_finance = loader.load().unwrap();
-
+    fn assert_finance_is_loaded_correctly(loaded_finance: &ExpenditureLog) {
         assert_eq!(
             loaded_finance.product_categories.get("prod1"),
             Some(&"cat1".to_string())
@@ -97,8 +111,49 @@ mod tests {
     }
 
     #[test]
+    fn test_loader_ok() {
+        let loader = JSONFinanceLoader::new(&json_finance_content());
+        let loaded_finance = loader.load().unwrap();
+
+        assert_finance_is_loaded_correctly(&loaded_finance);
+    }
+
+    #[test]
     fn test_loader_err() {
-        let loader = JsonFinanceLoader::new("invalid json");
+        let loader = JSONFinanceLoader::new("invalid json");
         assert!(loader.load().is_err());
+    }
+
+    #[test]
+    fn test_from_env() -> Result<(), String> {
+        let dir = TempDir::new().map_err(|_| "Error creating temp dir!")?;
+        let json_file_path = write_finance_json_in(&dir)?;
+
+        env::set_var("FINANCE_FILE_PATH", &json_file_path);
+
+        let loader = JSONFinanceLoader::from_env()
+            .map_err(|_| "Error creating JsonFinanceLoader from env!")?;
+
+        let loaded_finance = loader
+            .load()
+            .map_err(|_| "Error loading Finance from env!")?;
+
+        assert_finance_is_loaded_correctly(&loaded_finance);
+
+        Ok(())
+        // TODO Test VarError
+        // TODO Test open error
+        // TODO Test read error
+    }
+
+    fn write_finance_json_in(dir: &TempDir) -> Result<std::path::PathBuf, String> {
+        let file_path = dir.path().join("data_file.json");
+
+        let mut file = File::create(&file_path).map_err(|_| "Error creating temp JSON file!")?;
+
+        writeln!(file, "{}", json_finance_content())
+            .map_err(|_| "Error writing to temp JSON file!")?;
+
+        Ok(file_path)
     }
 }
