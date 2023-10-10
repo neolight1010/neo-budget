@@ -1,9 +1,12 @@
 use std::collections::HashMap;
 
+mod loader;
+
 pub type Price = f64;
 type Product = String;
 type Category = String;
 
+// TODO Renamce to Finance?
 #[derive(Clone)]
 pub struct ExpenditureLog {
     logs: Vec<(String, Price)>,
