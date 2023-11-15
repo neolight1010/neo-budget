@@ -1,12 +1,12 @@
 use std::collections::HashMap;
 
-mod loader;
+pub mod loader;
 
 pub type Price = f64;
 type Product = String;
 type Category = String;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Finance {
     logs: Vec<(String, Price)>,
     product_categories: HashMap<Product, Category>,

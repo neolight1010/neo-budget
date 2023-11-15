@@ -1,4 +1,5 @@
 use cursive::views::{Panel, SelectView};
+use neo_budget::loader::JSONFinanceLoader;
 use neo_budget::{ExpenditureLogStats, Finance};
 use views::{add_log_view, view_totals_view};
 
@@ -10,12 +11,9 @@ enum MenuSelection {
     ViewCategoryTotals,
 }
 
-fn main() {
-    let log = Finance::new()
-        .with_product("Bread", "Food")
-        .with_product("Eggs", "Food")
-        .with_log("Bread", 10.0)
-        .with_log("Eggs", 15.0);
+fn main() -> Result<(), String> {
+    let finance_loader = JSONFinanceLoader::from_env()?;
+    let log = finance_loader.load()?;
 
     let mut siv = cursive::default();
     siv.set_user_data(log);
@@ -23,6 +21,8 @@ fn main() {
     siv.add_layer(Panel::new(menu_view()));
 
     siv.run();
+
+    Ok(())
 }
 
 fn menu_view() -> SelectView<MenuSelection> {

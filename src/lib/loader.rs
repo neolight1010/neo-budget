@@ -23,6 +23,7 @@ struct JSONFinance {
     logs: Vec<JSONLog>,
 }
 
+#[derive(Debug)]
 pub struct JSONFinanceLoader {
     json: String,
 }
@@ -34,15 +35,19 @@ impl JSONFinanceLoader {
         }
     }
 
-    fn from_env() -> Result<Self, String> {
-        let json_file_path = env::var("FINANCE_FILE_PATH").map_err(|_| "")?;
-        let json_content = fs::read_to_string(json_file_path).map_err(|_| "")?;
+    pub fn from_env() -> Result<Self, String> {
+        let json_file_path = env::var("FINANCE_FILE_PATH")
+            .map_err(|_| "Couldn't load FINANCE_FILE_PATH variable! Is is set?")?;
+        let json_content = fs::read_to_string(&json_file_path)
+            .map_err(|_| format!("Couldn't read Finance file {json_file_path}. Does it exist?"))?;
 
-        Ok(Self { json: json_content })
+        Ok(Self::new(&json_content))
     }
 
-    fn load(&self) -> Result<Finance, serde_json::Error> {
-        let json_finance: JSONFinance = serde_json::from_str(&self.json)?;
+    pub fn load(&self) -> Result<Finance, String> {
+        let json_finance: JSONFinance = serde_json::from_str(&self.json).map_err(|_| {
+            "Error parsing Finance from JSON content. Does it have the correct structure?"
+        })?;
 
         let mut finance = Finance::new();
         for json_product in json_finance.products.iter() {
@@ -120,7 +125,10 @@ mod tests {
     #[test]
     fn test_loader_err() {
         let loader = JSONFinanceLoader::new("invalid json");
-        assert!(loader.load().is_err());
+        assert_eq!(
+            loader.load().expect_err("Expected load to fail!"),
+            "Error parsing Finance from JSON content. Does it have the correct structure?"
+        );
     }
 
     #[test]
@@ -140,9 +148,30 @@ mod tests {
         assert_finance_is_loaded_correctly(&loaded_finance);
 
         Ok(())
-        // TODO Test VarError
-        // TODO Test open error
         // TODO Test read error
+    }
+
+    #[test]
+    fn test_from_env_env_var_err() {
+        env::remove_var("FINANCE_FILE_PATH");
+        let loader_err = JSONFinanceLoader::from_env().expect_err("Expected from_env to fail!");
+
+        assert_eq!(
+            loader_err,
+            "Couldn't load FINANCE_FILE_PATH variable! Is is set?".to_string()
+        );
+    }
+
+    #[test]
+    fn test_from_env_file_open_err() {
+        env::set_var("FINANCE_FILE_PATH", "./inexistent-file.json");
+
+        let loader_err = JSONFinanceLoader::from_env().expect_err("Expected from_env to fail!");
+
+        assert_eq!(
+            loader_err,
+            "Couldn't read Finance file ./inexistent-file.json. Does it exist?"
+        );
     }
 
     fn write_finance_json_in(dir: &TempDir) -> Result<std::path::PathBuf, String> {

@@ -1,0 +1,20 @@
+{
+    "products": {
+        "bread": {
+            "category": "food"
+        },
+        "eggs": {
+            "category": "food"
+        }
+    },
+    "logs": [
+        {
+            "product": "bread",
+            "price": 10
+        },
+        {
+            "product": "eggs",
+            "price": 15
+        }
+    ]
+}
