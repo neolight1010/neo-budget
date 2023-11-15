@@ -4,7 +4,7 @@ use std::fs::File;
 
 use serde::Deserialize;
 
-use crate::ExpenditureLog;
+use crate::Finance;
 
 #[derive(Deserialize)]
 struct JSONProduct {
@@ -42,10 +42,10 @@ impl JSONFinanceLoader {
         Ok(Self { json: json_content })
     }
 
-    fn load(&self) -> Result<ExpenditureLog, serde_json::Error> {
+    fn load(&self) -> Result<Finance, serde_json::Error> {
         let json_finance: JSONFinance = serde_json::from_str(&self.json)?;
 
-        let mut finance = ExpenditureLog::new();
+        let mut finance = Finance::new();
         for json_product in json_finance.products.iter() {
             finance = finance.with_product(&json_product.product, &json_product.category);
         }
@@ -95,7 +95,7 @@ mod tests {
         .to_string()
     }
 
-    fn assert_finance_is_loaded_correctly(loaded_finance: &ExpenditureLog) {
+    fn assert_finance_is_loaded_correctly(loaded_finance: &Finance) {
         assert_eq!(
             loaded_finance.product_categories.get("prod1"),
             Some(&"cat1".to_string())

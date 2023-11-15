@@ -6,14 +6,13 @@ pub type Price = f64;
 type Product = String;
 type Category = String;
 
-// TODO Renamce to Finance?
 #[derive(Clone)]
-pub struct ExpenditureLog {
+pub struct Finance {
     logs: Vec<(String, Price)>,
     product_categories: HashMap<Product, Category>,
 }
 
-impl ExpenditureLog {
+impl Finance {
     pub fn new() -> Self {
         Self {
             logs: Vec::new(),
@@ -45,11 +44,11 @@ impl ExpenditureLog {
 }
 
 pub struct ExpenditureLogStats {
-    log: ExpenditureLog,
+    log: Finance,
 }
 
 impl ExpenditureLogStats {
-    pub fn new(log: ExpenditureLog) -> Self {
+    pub fn new(log: Finance) -> Self {
         Self { log }
     }
 
@@ -110,11 +109,11 @@ impl ExpenditureLogStats {
 
 #[cfg(test)]
 mod tests {
-    use super::{ExpenditureLog, ExpenditureLogStats};
+    use super::{Finance, ExpenditureLogStats};
 
     #[test]
     fn expenditure_log_product_total() {
-        let log = ExpenditureLog::new().with_log("prod1", 10.0);
+        let log = Finance::new().with_log("prod1", 10.0);
         let stats = ExpenditureLogStats::new(log);
 
         assert_eq!(stats.product_total("prod1"), 10.0);
@@ -122,7 +121,7 @@ mod tests {
 
     #[test]
     fn expenditure_log_category_total() {
-        let log = ExpenditureLog::new()
+        let log = Finance::new()
             .with_product("prod1", "cat1")
             .with_log("prod1", 10.0);
         let expenditure_log = ExpenditureLogStats::new(log);
@@ -132,7 +131,7 @@ mod tests {
 
     #[test]
     fn product_totals() {
-        let log = ExpenditureLog::new().with_log("prod1", 10.0);
+        let log = Finance::new().with_log("prod1", 10.0);
         let expenditure_log = ExpenditureLogStats::new(log);
 
         assert_eq!(expenditure_log.product_totals().get("prod1"), Some(&10.0));
@@ -140,7 +139,7 @@ mod tests {
 
     #[test]
     fn category_totals() {
-        let log = ExpenditureLog::new()
+        let log = Finance::new()
             .with_product("prod1", "cat1")
             .with_log("prod1", 10.0);
         let expenditure_log = ExpenditureLogStats::new(log);

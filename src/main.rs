@@ -1,5 +1,5 @@
 use cursive::views::{Panel, SelectView};
-use neo_budget::{ExpenditureLog, ExpenditureLogStats};
+use neo_budget::{Finance, ExpenditureLogStats};
 use views::{add_log_view, view_totals_view};
 
 mod views;
@@ -11,7 +11,7 @@ enum MenuSelection {
 }
 
 fn main() {
-    let log = ExpenditureLog::new()
+    let log = Finance::new()
         .with_product("Bread", "Food")
         .with_product("Eggs", "Food")
         .with_log("Bread", 10.0)
@@ -33,7 +33,7 @@ fn menu_view() -> SelectView<MenuSelection> {
 
     menu.set_on_submit(|siv, selection| {
         let expenditure_log = siv
-            .user_data::<ExpenditureLog>()
+            .user_data::<Finance>()
             .expect("Couldn't find expenditure log.");
 
         let stats = ExpenditureLogStats::new(expenditure_log.clone());
