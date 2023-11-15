@@ -1,5 +1,5 @@
 use cursive::views::{Panel, SelectView};
-use neo_budget::{Finance, ExpenditureLogStats};
+use neo_budget::{ExpenditureLogStats, Finance};
 use views::{add_log_view, view_totals_view};
 
 mod views;

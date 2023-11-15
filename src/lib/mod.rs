@@ -109,7 +109,7 @@ impl ExpenditureLogStats {
 
 #[cfg(test)]
 mod tests {
-    use super::{Finance, ExpenditureLogStats};
+    use super::{ExpenditureLogStats, Finance};
 
     #[test]
     fn expenditure_log_product_total() {

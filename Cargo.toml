@@ -5,6 +5,9 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[lib]
+path = "src/lib/mod.rs"
+
 [dependencies]
 cursive = "0.20.0"
 serde = { version = "1.0.188", features = ["derive"] }
