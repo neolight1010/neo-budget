@@ -1,12 +1,18 @@
 {
-    "products": {
-        "bread": {
+    "products": [
+        {
+            "product": "bread",
             "category": "food"
         },
-        "eggs": {
+        {
+            "product": "eggs",
             "category": "food"
+        },
+        {
+            "product": "paper",
+            "category": "home"
         }
-    },
+    ],
     "logs": [
         {
             "product": "bread",
