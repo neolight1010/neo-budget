@@ -1,34 +1,17 @@
 use std::env;
 use std::fs;
 
-use serde::Deserialize;
-
+use self::json::JSONFinance;
 use crate::Finance;
 
-#[derive(Deserialize)]
-struct JSONProduct {
-    product: String,
-    category: String,
-}
-
-#[derive(Deserialize)]
-struct JSONLog {
-    product: String,
-    price: f64,
-}
-
-#[derive(Deserialize)]
-struct JSONFinance {
-    products: Vec<JSONProduct>,
-    logs: Vec<JSONLog>,
-}
+mod json;
 
 #[derive(Debug)]
-pub struct JSONFinanceLoader {
+pub struct JSONFinanceRepository {
     json: String,
 }
 
-impl JSONFinanceLoader {
+impl JSONFinanceRepository {
     fn new(json: &str) -> Self {
         Self {
             json: json.to_string(),
@@ -116,7 +99,7 @@ mod tests {
 
     #[test]
     fn test_loader_ok() {
-        let loader = JSONFinanceLoader::new(&json_finance_content());
+        let loader = JSONFinanceRepository::new(&json_finance_content());
         let loaded_finance = loader.load().unwrap();
 
         assert_finance_is_loaded_correctly(&loaded_finance);
@@ -124,7 +107,7 @@ mod tests {
 
     #[test]
     fn test_loader_err() {
-        let loader = JSONFinanceLoader::new("invalid json");
+        let loader = JSONFinanceRepository::new("invalid json");
         assert_eq!(
             loader.load().expect_err("Expected load to fail!"),
             "Error parsing Finance from JSON content. Does it have the correct structure?"
@@ -138,7 +121,7 @@ mod tests {
 
         env::set_var("FINANCE_FILE_PATH", &json_file_path);
 
-        let loader = JSONFinanceLoader::from_env()
+        let loader = JSONFinanceRepository::from_env()
             .map_err(|_| "Error creating JsonFinanceLoader from env!")?;
 
         let loaded_finance = loader
@@ -154,7 +137,7 @@ mod tests {
     #[test]
     fn test_from_env_env_var_err() {
         env::remove_var("FINANCE_FILE_PATH");
-        let loader_err = JSONFinanceLoader::from_env().expect_err("Expected from_env to fail!");
+        let loader_err = JSONFinanceRepository::from_env().expect_err("Expected from_env to fail!");
 
         assert_eq!(
             loader_err,
@@ -166,7 +149,7 @@ mod tests {
     fn test_from_env_file_open_err() {
         env::set_var("FINANCE_FILE_PATH", "./inexistent-file.json");
 
-        let loader_err = JSONFinanceLoader::from_env().expect_err("Expected from_env to fail!");
+        let loader_err = JSONFinanceRepository::from_env().expect_err("Expected from_env to fail!");
 
         assert_eq!(
             loader_err,

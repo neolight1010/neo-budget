@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-pub mod loader;
+pub mod repository;
 
 pub type Price = f64;
 type Product = String;
