@@ -8,21 +8,23 @@ mod json;
 
 #[derive(Debug)]
 pub struct EnvJSONFinanceRepository {
-    json: String,
+    json_path: String,
 }
 
 impl EnvJSONFinanceRepository {
     pub fn from_env() -> Result<Self, String> {
-        let json_file_path = env::var("FINANCE_FILE_PATH")
+        let json_path = env::var("FINANCE_FILE_PATH")
             .map_err(|_| "Couldn't load FINANCE_FILE_PATH variable! Is is set?")?;
-        let json_content = fs::read_to_string(&json_file_path)
-            .map_err(|_| format!("Couldn't read Finance file {json_file_path}. Does it exist?"))?;
 
-        Ok(Self { json: json_content })
+        Ok(Self { json_path })
     }
 
     pub fn load(&self) -> Result<Finance, String> {
-        let json_finance: JSONFinance = serde_json::from_str(&self.json).map_err(|_| {
+        let json_path = &self.json_path;
+        let json_content = fs::read_to_string(json_path)
+            .map_err(|_| format!("Couldn't read Finance file {json_path}. Does it exist?"))?;
+
+        let json_finance: JSONFinance = serde_json::from_str(&json_content).map_err(|_| {
             "Error parsing Finance from JSON content. Does it have the correct structure?"
         })?;
 
@@ -48,52 +50,8 @@ mod tests {
 
     use super::*;
 
-    fn assert_finance_is_loaded_correctly(loaded_finance: &Finance) {
-        assert_eq!(
-            loaded_finance.product_categories.get("prod1"),
-            Some(&"cat1".to_string())
-        );
-
-        assert_eq!(
-            loaded_finance.product_categories.get("prod2"),
-            Some(&"cat2".to_string())
-        );
-
-        assert_eq!(loaded_finance.logs[0], ("prod1".to_owned(), 10.0));
-        assert_eq!(loaded_finance.logs[1], ("prod2".to_owned(), 20.0));
-    }
-
     #[test]
-    fn test_loader_ok() {
-        with_valid_finance_json_in_temp_dir(|json_file_path| {
-            env::set_var("FINANCE_FILE_PATH", &json_file_path);
-
-            let repo =
-                EnvJSONFinanceRepository::from_env().expect("Didn't expect from_env to fail!");
-            let loaded_finance = repo.load().unwrap();
-
-            assert_finance_is_loaded_correctly(&loaded_finance);
-        });
-    }
-
-    #[test]
-    fn test_loader_err_invalid_json() {
-        with_invalid_finance_json_in_temp_dir(|json_file_path| {
-            env::set_var("FINANCE_FILE_PATH", &json_file_path);
-
-            let repo =
-                EnvJSONFinanceRepository::from_env().expect("Didn't expect from_env to fail!");
-            let load_err = repo.load().expect_err("Expected load to fail!");
-
-            assert_eq!(
-                load_err,
-                "Error parsing Finance from JSON content. Does it have the correct structure?"
-            );
-        })
-    }
-
-    #[test]
-    fn test_from_env() {
+    fn test_from_env_loads_correctly() {
         with_valid_finance_json_in_temp_dir(|json_file_path| {
             env::set_var("FINANCE_FILE_PATH", &json_file_path);
 
@@ -119,16 +77,47 @@ mod tests {
     }
 
     #[test]
-    fn test_from_env_file_open_err() {
+    fn test_loader_err_invalid_json() {
+        with_invalid_finance_json_in_temp_dir(|json_file_path| {
+            env::set_var("FINANCE_FILE_PATH", &json_file_path);
+
+            let repo =
+                EnvJSONFinanceRepository::from_env().expect("Didn't expect from_env to fail!");
+            let load_err = repo.load().expect_err("Expected load to fail!");
+
+            assert_eq!(
+                load_err,
+                "Error parsing Finance from JSON content. Does it have the correct structure?"
+            );
+        })
+    }
+
+    #[test]
+    fn test_from_env_load_file_open_err() {
         env::set_var("FINANCE_FILE_PATH", "./inexistent-file.json");
 
-        let loader_err =
-            EnvJSONFinanceRepository::from_env().expect_err("Expected from_env to fail!");
+        let repo = EnvJSONFinanceRepository::from_env().expect("Didn't expect from_env to fail!");
+        let load_err = repo.load().expect_err("Expected load to fail!");
 
         assert_eq!(
-            loader_err,
+            load_err,
             "Couldn't read Finance file ./inexistent-file.json. Does it exist?"
         );
+    }
+
+    fn assert_finance_is_loaded_correctly(loaded_finance: &Finance) {
+        assert_eq!(
+            loaded_finance.product_categories.get("prod1"),
+            Some(&"cat1".to_string())
+        );
+
+        assert_eq!(
+            loaded_finance.product_categories.get("prod2"),
+            Some(&"cat2".to_string())
+        );
+
+        assert_eq!(loaded_finance.logs[0], ("prod1".to_owned(), 10.0));
+        assert_eq!(loaded_finance.logs[1], ("prod2".to_owned(), 20.0));
     }
 
     fn json_finance_content() -> String {
