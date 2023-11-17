@@ -52,7 +52,7 @@ mod tests {
 
     #[test]
     fn test_from_env_loads_correctly() {
-        with_valid_finance_json_in_temp_dir(|json_file_path| {
+        with_valid_temp_finance_json_file(|json_file_path| {
             env::set_var("FINANCE_FILE_PATH", &json_file_path);
 
             let loader =
@@ -78,7 +78,7 @@ mod tests {
 
     #[test]
     fn test_loader_err_invalid_json() {
-        with_invalid_finance_json_in_temp_dir(|json_file_path| {
+        with_invalid_temp_finance_json_file(|json_file_path| {
             env::set_var("FINANCE_FILE_PATH", &json_file_path);
 
             let repo =
@@ -94,14 +94,14 @@ mod tests {
 
     #[test]
     fn test_from_env_load_file_open_err() {
-        env::set_var("FINANCE_FILE_PATH", "./inexistent-file.json");
+        env::set_var("FINANCE_FILE_PATH", "inexistent-file.json");
 
         let repo = EnvJSONFinanceRepository::from_env().expect("Didn't expect from_env to fail!");
         let load_err = repo.load().expect_err("Expected load to fail!");
 
         assert_eq!(
             load_err,
-            "Couldn't read Finance file ./inexistent-file.json. Does it exist?"
+            "Couldn't read Finance file inexistent-file.json. Does it exist?"
         );
     }
 
@@ -148,21 +148,21 @@ mod tests {
         .to_string()
     }
 
-    fn with_valid_finance_json_in_temp_dir<F>(func: F)
+    fn with_valid_temp_finance_json_file<F>(func: F)
     where
         F: Fn(std::path::PathBuf) -> (),
     {
-        with_finance_json_in_temp_dir(&json_finance_content(), func);
+        with_temp_finance_json_file(&json_finance_content(), func);
     }
 
-    fn with_invalid_finance_json_in_temp_dir<F>(func: F)
+    fn with_invalid_temp_finance_json_file<F>(func: F)
     where
         F: Fn(std::path::PathBuf) -> (),
     {
-        with_finance_json_in_temp_dir("invalid finance json", func);
+        with_temp_finance_json_file("invalid finance json", func);
     }
 
-    fn with_finance_json_in_temp_dir<F>(finance_json: &str, func: F)
+    fn with_temp_finance_json_file<F>(finance_json: &str, func: F)
     where
         F: Fn(std::path::PathBuf) -> (),
     {
