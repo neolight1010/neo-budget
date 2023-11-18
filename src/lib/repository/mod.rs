@@ -1,5 +1,6 @@
 use std::env;
 use std::fs;
+use std::io::Write;
 
 use self::json::JSONFinance;
 use crate::Finance;
@@ -28,16 +29,24 @@ impl EnvJSONFinanceRepository {
             "Error parsing Finance from JSON content. Does it have the correct structure?"
         })?;
 
-        let mut finance = Finance::new();
-        for json_product in json_finance.products.iter() {
-            finance = finance.with_product(&json_product.product, &json_product.category);
-        }
+        Ok(json_finance.to_finance())
+    }
 
-        for json_log in json_finance.logs.iter() {
-            finance = finance.with_log(&json_log.product, json_log.price);
-        }
+    pub fn save(&self, finance: &Finance) -> Result<(), String> {
+        let json_path = &self.json_path;
+        let file = fs::File::create(json_path).map_err(|_| {
+            format!("Couldn't write to file {json_path}! Does the directory exist?")
+        })?;
 
-        Ok(finance)
+        let json_finance = JSONFinance::from_finance(finance);
+        writeln!(
+            &file,
+            "{}",
+            serde_json::to_string(&json_finance).map_err(|_| "Unknown error.")?
+        )
+        .map_err(|_| "Unknown error.")?;
+
+        Ok(())
     }
 }
 
@@ -46,6 +55,7 @@ mod tests {
     use std::fs::File;
     use std::io::Write;
 
+    use ::json::parse as json_parse;
     use tempfile::TempDir;
 
     use super::*;
@@ -53,7 +63,7 @@ mod tests {
     #[test]
     fn test_from_env_loads_correctly() {
         with_valid_temp_finance_json_file(|json_file_path| {
-            env::set_var("FINANCE_FILE_PATH", &json_file_path);
+            set_finance_file_path(&json_file_path.to_str().unwrap());
 
             let loader =
                 EnvJSONFinanceRepository::from_env().expect("Didn't expect from_env to fail!");
@@ -79,7 +89,7 @@ mod tests {
     #[test]
     fn test_loader_err_invalid_json() {
         with_invalid_temp_finance_json_file(|json_file_path| {
-            env::set_var("FINANCE_FILE_PATH", &json_file_path);
+            set_finance_file_path(&json_file_path.to_str().unwrap());
 
             let repo =
                 EnvJSONFinanceRepository::from_env().expect("Didn't expect from_env to fail!");
@@ -94,7 +104,7 @@ mod tests {
 
     #[test]
     fn test_from_env_load_file_open_err() {
-        env::set_var("FINANCE_FILE_PATH", "inexistent-file.json");
+        set_finance_file_path("inexistent-file.json");
 
         let repo = EnvJSONFinanceRepository::from_env().expect("Didn't expect from_env to fail!");
         let load_err = repo.load().expect_err("Expected load to fail!");
@@ -103,6 +113,51 @@ mod tests {
             load_err,
             "Couldn't read Finance file inexistent-file.json. Does it exist?"
         );
+    }
+
+    #[test]
+    fn test_from_env_save() {
+        let dir = TempDir::new().unwrap();
+        let finance_path = dir.path().join("finance.json");
+        set_finance_file_path(finance_path.to_str().unwrap());
+
+        let repo = EnvJSONFinanceRepository::from_env().expect("Didn't expect from_env to fail!");
+        let finance = Finance::new()
+            .with_product("prod1", "cat1")
+            .with_log("prod1", 10.0);
+
+        repo.save(&finance).expect("Didn't expect save to fail!");
+
+        let file_contents = fs::read_to_string(finance_path).expect("Error reading file!");
+
+        let expected_json = json_parse(
+            r#"{ "products": [{ "product": "prod1", "category": "cat1" }], "logs": [{"product": "prod1", "price": 10}] }"#,
+        ).unwrap();
+
+        assert_eq!(
+            json_parse(&file_contents).expect("Error loading saved JSON Finance file!"),
+            expected_json
+        );
+    }
+
+    #[test]
+    fn test_from_env_save_file_err() {
+        set_finance_file_path("/inexistent-dir/file.json");
+
+        let repo = EnvJSONFinanceRepository::from_env().expect("Didn't expect from_env to fail!");
+        let finance = Finance::new()
+            .with_product("prod1", "cat1")
+            .with_log("prod1", 10.0);
+
+        let save_err = repo.save(&finance).expect_err("Expected save to fail!");
+        assert_eq!(
+            save_err,
+            "Couldn't write to file /inexistent-dir/file.json! Does the directory exist?"
+        );
+    }
+
+    fn set_finance_file_path(value: &str) {
+        env::set_var("FINANCE_FILE_PATH", value);
     }
 
     fn assert_finance_is_loaded_correctly(loaded_finance: &Finance) {
