@@ -4,7 +4,9 @@ use cursive::{
     view::{Nameable, Resizable},
     views::{Dialog, EditView, LinearLayout, ListView, TextView},
 };
-use neo_budget::{Finance, Price};
+
+use crate::siv::{get_finance_app, set_finance_app};
+use neo_budget::Price;
 
 pub fn add_log_view() -> Dialog {
     let layout = LinearLayout::new(cursive::direction::Orientation::Vertical)
@@ -31,11 +33,15 @@ pub fn add_log_view() -> Dialog {
                 .find_name::<TextView>("add_log_result")
                 .expect("Couldn't find add_log_result");
 
-            let current_log = siv.user_data::<Finance>().unwrap().clone();
+            let current_app = get_finance_app(siv);
+            let current_log = current_app.finance();
 
             match add_log_price {
                 Ok(price) => {
-                    siv.set_user_data(current_log.with_log(&add_log_name, price));
+                    set_finance_app(
+                        siv,
+                        current_app.with_finance(current_log.with_log(&add_log_name, price)),
+                    );
                     add_log_result.set_content("Log added successfully!");
                 }
 
@@ -58,6 +64,12 @@ pub fn view_totals_view(totals: &HashMap<String, Price>) -> Dialog {
     }
 
     Dialog::around(list_view).button("Back", |siv| {
+        siv.pop_layer();
+    })
+}
+
+pub fn save_view() -> Dialog {
+    Dialog::around(TextView::new("Saved!")).button("Ok", |siv| {
         siv.pop_layer();
     })
 }

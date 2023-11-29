@@ -7,7 +7,12 @@ use crate::Finance;
 
 mod json;
 
-#[derive(Debug)]
+pub trait FinanceRepository: Clone {
+    fn load(&self) -> Result<Finance, String>;
+    fn save(&self, finance: &Finance) -> Result<(), String>;
+}
+
+#[derive(Clone, Debug)]
 pub struct EnvJSONFinanceRepository {
     json_path: String,
 }
@@ -19,8 +24,10 @@ impl EnvJSONFinanceRepository {
 
         Ok(Self { json_path })
     }
+}
 
-    pub fn load(&self) -> Result<Finance, String> {
+impl FinanceRepository for EnvJSONFinanceRepository {
+    fn load(&self) -> Result<Finance, String> {
         let json_path = &self.json_path;
         let json_content = fs::read_to_string(json_path)
             .map_err(|_| format!("Couldn't read Finance file {json_path}. Does it exist?"))?;
@@ -32,7 +39,7 @@ impl EnvJSONFinanceRepository {
         Ok(json_finance.to_finance())
     }
 
-    pub fn save(&self, finance: &Finance) -> Result<(), String> {
+    fn save(&self, finance: &Finance) -> Result<(), String> {
         let json_path = &self.json_path;
         let file = fs::File::create(json_path).map_err(|_| {
             format!("Couldn't write to file {json_path}! Does the directory exist?")
