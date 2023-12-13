@@ -3,7 +3,7 @@ use std::fs;
 use std::io::Write;
 
 use self::json::JSONFinance;
-use crate::Finance;
+use crate::finance::Finance;
 
 mod json;
 

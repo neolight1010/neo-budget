@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::Finance;
+use crate::finance::Finance;
 
 #[derive(Deserialize, Serialize)]
 pub struct JSONFinance {

@@ -1,6 +1,6 @@
 use cursive::views::{Panel, SelectView};
 use neo_budget::repository::{EnvJSONFinanceRepository, FinanceRepository};
-use neo_budget::ExpenditureLogStats;
+use neo_budget::stats::ExpenditureLogStats;
 use siv::get_finance_app;
 
 use crate::siv::FinanceApp;
