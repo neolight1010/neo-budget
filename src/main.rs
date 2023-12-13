@@ -1,6 +1,6 @@
 use cursive::views::{Panel, SelectView};
 use neo_budget::repository::{EnvJSONFinanceRepository, FinanceRepository};
-use neo_budget::stats::ExpenditureLogStats;
+use neo_budget::stats::FinanceStats;
 use siv::get_finance_app;
 
 use crate::siv::FinanceApp;
@@ -45,7 +45,7 @@ fn menu_view() -> SelectView<MenuSelection> {
         let finance = finance_app.finance();
         let finance_repo = finance_app.finance_repo();
 
-        let stats = ExpenditureLogStats::new(finance.clone());
+        let stats = FinanceStats::new(finance.clone());
         let product_totals = stats.product_totals();
         let category_totals = stats.category_totals();
 
