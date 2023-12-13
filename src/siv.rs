@@ -1,5 +1,5 @@
 use neo_budget::repository::{EnvJSONFinanceRepository, FinanceRepository};
-use neo_budget::Finance;
+use neo_budget::finance::Finance;
 
 #[derive(Clone)]
 pub struct FinanceApp<T: FinanceRepository> {

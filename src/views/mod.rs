@@ -6,7 +6,7 @@ use cursive::{
 };
 
 use crate::siv::{get_finance_app, set_finance_app};
-use neo_budget::Price;
+use neo_budget::finance::Price;
 
 pub fn add_log_view() -> Dialog {
     let layout = LinearLayout::new(cursive::direction::Orientation::Vertical)
