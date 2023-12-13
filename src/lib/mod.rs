@@ -47,7 +47,7 @@ impl ExpenditureLogStats {
                     }
                 }
 
-                return 0.0;
+                0.0
             })
             .sum()
     }

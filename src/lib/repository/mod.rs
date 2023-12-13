@@ -70,7 +70,7 @@ mod tests {
     #[test]
     fn test_from_env_loads_correctly() {
         with_valid_temp_finance_json_file(|json_file_path| {
-            set_finance_file_path(&json_file_path.to_str().unwrap());
+            set_finance_file_path(json_file_path.to_str().unwrap());
 
             let loader =
                 EnvJSONFinanceRepository::from_env().expect("Didn't expect from_env to fail!");
@@ -96,7 +96,7 @@ mod tests {
     #[test]
     fn test_loader_err_invalid_json() {
         with_invalid_temp_finance_json_file(|json_file_path| {
-            set_finance_file_path(&json_file_path.to_str().unwrap());
+            set_finance_file_path(json_file_path.to_str().unwrap());
 
             let repo =
                 EnvJSONFinanceRepository::from_env().expect("Didn't expect from_env to fail!");
@@ -212,21 +212,21 @@ mod tests {
 
     fn with_valid_temp_finance_json_file<F>(func: F)
     where
-        F: Fn(std::path::PathBuf) -> (),
+        F: Fn(std::path::PathBuf),
     {
         with_temp_finance_json_file(&json_finance_content(), func);
     }
 
     fn with_invalid_temp_finance_json_file<F>(func: F)
     where
-        F: Fn(std::path::PathBuf) -> (),
+        F: Fn(std::path::PathBuf),
     {
         with_temp_finance_json_file("invalid finance json", func);
     }
 
     fn with_temp_finance_json_file<F>(finance_json: &str, func: F)
     where
-        F: Fn(std::path::PathBuf) -> (),
+        F: Fn(std::path::PathBuf),
     {
         let dir = TempDir::new().expect("Error creating temp dir!");
         let file_path = dir.path().join("data_file.json");

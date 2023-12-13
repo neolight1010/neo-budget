@@ -40,3 +40,9 @@ impl Finance {
         }
     }
 }
+
+impl Default for Finance {
+    fn default() -> Self {
+        Self::new()
+    }
+}
