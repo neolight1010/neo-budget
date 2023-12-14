@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use super::finance::{Finance, Price};
+use super::finance::{Finance, FinanceLog, Price};
 
 pub struct FinanceStats {
     log: Finance,
@@ -15,14 +15,19 @@ impl FinanceStats {
         self.log
             .logs
             .iter()
-            .filter(|(p, _)| p == product)
-            .map(|(_, p)| p)
+            .filter(
+                |FinanceLog {
+                     product: p,
+                     price: _,
+                 }| p == product,
+            )
+            .map(|log| log.price)
             .sum()
     }
 
     pub fn product_totals(&self) -> HashMap<String, Price> {
         let mut product_totals = HashMap::<String, Price>::new();
-        for (product, price) in self.log.logs.iter() {
+        for FinanceLog { product, price } in self.log.logs.iter() {
             if let Some(current_price) = product_totals.get(product) {
                 product_totals.insert(product.to_owned(), current_price + price);
             } else {
@@ -37,10 +42,10 @@ impl FinanceStats {
         self.log
             .logs
             .iter()
-            .map(|(product, price)| {
-                if let Some(c) = self.log.product_categories.get(product) {
+            .map(|log| {
+                if let Some(c) = self.log.product_categories.get(&log.product) {
                     if c == category {
-                        return price.to_owned();
+                        return log.price;
                     }
                 }
 
@@ -52,13 +57,13 @@ impl FinanceStats {
     pub fn category_totals(&self) -> HashMap<String, Price> {
         let mut category_totals = HashMap::<String, Price>::new();
 
-        for (product, price) in self.log.logs.iter() {
-            if let Some(category) = self.log.product_categories.get(product) {
+        for log in self.log.logs.iter() {
+            if let Some(category) = self.log.product_categories.get(&log.product) {
                 if let Some(current_price) = category_totals.get(category) {
-                    category_totals.insert(category.to_owned(), current_price + price);
+                    category_totals.insert(category.to_owned(), current_price + log.price);
                 }
 
-                category_totals.insert(category.to_owned(), price.to_owned());
+                category_totals.insert(category.to_owned(), log.price);
             }
         }
 
@@ -68,7 +73,7 @@ impl FinanceStats {
 
 #[cfg(test)]
 mod tests {
-    use super::{FinanceStats, Finance};
+    use super::{Finance, FinanceStats};
 
     #[test]
     fn expenditure_log_product_total() {

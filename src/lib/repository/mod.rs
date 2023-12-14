@@ -66,6 +66,7 @@ mod tests {
     use tempfile::TempDir;
 
     use super::*;
+    use crate::finance::FinanceLog;
 
     #[test]
     fn test_from_env_loads_correctly() {
@@ -178,8 +179,20 @@ mod tests {
             Some(&"cat2".to_string())
         );
 
-        assert_eq!(loaded_finance.logs[0], ("prod1".to_owned(), 10.0));
-        assert_eq!(loaded_finance.logs[1], ("prod2".to_owned(), 20.0));
+        assert_eq!(
+            loaded_finance.logs[0],
+            FinanceLog {
+                product: "prod1".to_owned(),
+                price: 10.0
+            }
+        );
+        assert_eq!(
+            loaded_finance.logs[1],
+            FinanceLog {
+                product: "prod2".to_owned(),
+                price: 20.0
+            }
+        );
     }
 
     fn json_finance_content() -> String {

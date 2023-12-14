@@ -1,13 +1,19 @@
 use std::collections::HashMap;
 
 pub type Price = f64;
-type Product = String;
+type ProductName = String;
 type Category = String;
 
 #[derive(Clone, Debug)]
 pub struct Finance {
-    pub logs: Vec<(String, Price)>,
-    pub product_categories: HashMap<Product, Category>,
+    pub logs: Vec<FinanceLog>,
+    pub product_categories: HashMap<ProductName, Category>,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct FinanceLog {
+    pub product: ProductName,
+    pub price: Price,
 }
 
 impl Finance {
@@ -23,7 +29,10 @@ impl Finance {
             logs: self
                 .logs
                 .into_iter()
-                .chain(vec![(product.to_owned(), price)])
+                .chain(Some(FinanceLog {
+                    product: product.to_owned(),
+                    price,
+                }))
                 .collect(),
             ..self
         }

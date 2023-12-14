@@ -15,8 +15,8 @@ impl JSONFinance {
                 .logs
                 .iter()
                 .map(|log| JSONLog {
-                    product: log.0.clone(),
-                    price: log.1,
+                    product: log.product.to_owned(),
+                    price: log.price,
                 })
                 .collect(),
             products: finance
