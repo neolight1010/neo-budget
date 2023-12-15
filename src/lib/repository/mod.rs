@@ -179,20 +179,8 @@ mod tests {
             Some(&"cat2".to_string())
         );
 
-        assert_eq!(
-            loaded_finance.logs[0],
-            FinanceLog {
-                product: "prod1".to_owned(),
-                price: 10.0
-            }
-        );
-        assert_eq!(
-            loaded_finance.logs[1],
-            FinanceLog {
-                product: "prod2".to_owned(),
-                price: 20.0
-            }
-        );
+        assert_eq!(loaded_finance.logs[0], FinanceLog::new("prod1", 10.0));
+        assert_eq!(loaded_finance.logs[1], FinanceLog::new("prod2", 20.0));
     }
 
     fn json_finance_content() -> String {

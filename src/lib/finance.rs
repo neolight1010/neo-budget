@@ -10,12 +10,6 @@ pub struct Finance {
     pub product_categories: HashMap<ProductName, Category>,
 }
 
-#[derive(Clone, Debug, PartialEq)]
-pub struct FinanceLog {
-    pub product: ProductName,
-    pub price: Price,
-}
-
 impl Finance {
     pub fn new() -> Self {
         Self {
@@ -29,10 +23,7 @@ impl Finance {
             logs: self
                 .logs
                 .into_iter()
-                .chain(Some(FinanceLog {
-                    product: product.to_owned(),
-                    price,
-                }))
+                .chain(Some(FinanceLog::new(product, price)))
                 .collect(),
             ..self
         }
@@ -53,5 +44,20 @@ impl Finance {
 impl Default for Finance {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct FinanceLog {
+    pub product: ProductName,
+    pub price: Price,
+}
+
+impl FinanceLog {
+    pub fn new(product: &str, price: f64) -> Self {
+        FinanceLog {
+            product: product.to_owned(),
+            price,
+        }
     }
 }
