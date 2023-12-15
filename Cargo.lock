@@ -213,6 +213,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "gregorian"
+version = "0.2.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "18888aec42cda8438d991d59b05e5ffa1a9799b1df634346672b1fac7eb02354"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "ident_case"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -279,6 +288,7 @@ name = "neo-budget"
 version = "0.1.0"
 dependencies = [
  "cursive",
+ "gregorian",
  "json",
  "serde",
  "serde_json",

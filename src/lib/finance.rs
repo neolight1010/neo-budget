@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use gregorian::{Month, YearMonth};
+
 pub type Price = f64;
 type ProductName = String;
 type Category = String;
@@ -51,6 +53,7 @@ impl Default for Finance {
 pub struct FinanceLog {
     pub product: ProductName,
     pub price: Price,
+    pub year_month: YearMonth,
 }
 
 impl FinanceLog {
@@ -58,6 +61,7 @@ impl FinanceLog {
         FinanceLog {
             product: product.to_owned(),
             price,
+            year_month: YearMonth::new(2020, Month::January),
         }
     }
 }

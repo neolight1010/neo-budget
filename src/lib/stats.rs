@@ -15,19 +15,14 @@ impl FinanceStats {
         self.log
             .logs
             .iter()
-            .filter(
-                |FinanceLog {
-                     product: p,
-                     price: _,
-                 }| p == product,
-            )
+            .filter(|log| log.product == product)
             .map(|log| log.price)
             .sum()
     }
 
     pub fn product_totals(&self) -> HashMap<String, Price> {
         let mut product_totals = HashMap::<String, Price>::new();
-        for FinanceLog { product, price } in self.log.logs.iter() {
+        for FinanceLog { product, price, .. } in self.log.logs.iter() {
             if let Some(current_price) = product_totals.get(product) {
                 product_totals.insert(product.to_owned(), current_price + price);
             } else {
