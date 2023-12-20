@@ -63,10 +63,12 @@ mod tests {
     use std::io::Write;
 
     use ::json::parse as json_parse;
+    use gregorian::{Month, Year, YearMonth};
     use tempfile::TempDir;
 
-    use super::*;
     use crate::finance::FinanceLog;
+
+    use super::*;
 
     #[test]
     fn test_from_env_loads_correctly() {
@@ -132,14 +134,18 @@ mod tests {
         let repo = EnvJSONFinanceRepository::from_env().expect("Didn't expect from_env to fail!");
         let finance = Finance::new()
             .with_product("prod1", "cat1")
-            .with_log("prod1", 10.0);
+            .with_log(FinanceLog::new(
+                "prod1",
+                10.0,
+                YearMonth::new(2022, Month::February),
+            ));
 
         repo.save(&finance).expect("Didn't expect save to fail!");
 
         let file_contents = fs::read_to_string(finance_path).expect("Error reading file!");
 
         let expected_json = json_parse(
-            r#"{ "products": [{ "product": "prod1", "category": "cat1" }], "logs": [{"product": "prod1", "price": 10}] }"#,
+            r#"{ "products": [{ "product": "prod1", "category": "cat1" }], "logs": [{"product": "prod1", "price": 10, "year": 2022, "month": 2 }] }"#,
         ).unwrap();
 
         assert_eq!(
@@ -153,9 +159,7 @@ mod tests {
         set_finance_file_path("/inexistent-dir/file.json");
 
         let repo = EnvJSONFinanceRepository::from_env().expect("Didn't expect from_env to fail!");
-        let finance = Finance::new()
-            .with_product("prod1", "cat1")
-            .with_log("prod1", 10.0);
+        let finance = Finance::new();
 
         let save_err = repo.save(&finance).expect_err("Expected save to fail!");
         assert_eq!(
@@ -179,8 +183,15 @@ mod tests {
             Some(&"cat2".to_string())
         );
 
-        assert_eq!(loaded_finance.logs[0], FinanceLog::new("prod1", 10.0));
-        assert_eq!(loaded_finance.logs[1], FinanceLog::new("prod2", 20.0));
+        assert_eq!(loaded_finance.logs[0].product, "prod1");
+        assert_eq!(loaded_finance.logs[0].price, 10.0);
+        assert_eq!(loaded_finance.logs[0].year_month.year(), Year::new(2021));
+        assert_eq!(loaded_finance.logs[0].year_month.month(), Month::January);
+
+        assert_eq!(loaded_finance.logs[1].product, "prod2");
+        assert_eq!(loaded_finance.logs[1].price, 20.0);
+        assert_eq!(loaded_finance.logs[0].year_month.year(), Year::new(2021));
+        assert_eq!(loaded_finance.logs[0].year_month.month(), Month::January);
     }
 
     fn json_finance_content() -> String {
@@ -199,11 +210,15 @@ mod tests {
     "logs": [
         {
             "product": "prod1",
-            "price": 10
+            "price": 10,
+            "year": 2021,
+            "month": 1
         },
         {
             "product": "prod2",
-            "price": 20
+            "price": 20,
+            "year": 2021,
+            "month": 1
         }
     ]
 }

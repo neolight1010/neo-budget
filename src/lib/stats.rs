@@ -68,11 +68,15 @@ impl FinanceStats {
 
 #[cfg(test)]
 mod tests {
+    use gregorian::{YearMonth, Month};
+
+    use crate::finance::FinanceLog;
+
     use super::{Finance, FinanceStats};
 
     #[test]
     fn expenditure_log_product_total() {
-        let log = Finance::new().with_log("prod1", 10.0);
+        let log = Finance::new().with_log(simple_log());
         let stats = FinanceStats::new(log);
 
         assert_eq!(stats.product_total("prod1"), 10.0);
@@ -82,7 +86,7 @@ mod tests {
     fn expenditure_log_category_total() {
         let log = Finance::new()
             .with_product("prod1", "cat1")
-            .with_log("prod1", 10.0);
+            .with_log(simple_log());
         let expenditure_log = FinanceStats::new(log);
 
         assert_eq!(expenditure_log.category_total("cat1"), 10.0);
@@ -90,7 +94,7 @@ mod tests {
 
     #[test]
     fn product_totals() {
-        let log = Finance::new().with_log("prod1", 10.0);
+        let log = Finance::new().with_log(simple_log());
         let expenditure_log = FinanceStats::new(log);
 
         assert_eq!(expenditure_log.product_totals().get("prod1"), Some(&10.0));
@@ -100,9 +104,13 @@ mod tests {
     fn category_totals() {
         let log = Finance::new()
             .with_product("prod1", "cat1")
-            .with_log("prod1", 10.0);
+            .with_log(simple_log());
         let expenditure_log = FinanceStats::new(log);
 
         assert_eq!(expenditure_log.category_totals().get("cat1"), Some(&10.0));
+    }
+
+    fn simple_log() -> FinanceLog {
+        FinanceLog::new("prod1", 10.0, YearMonth::new(2021, Month::January))
     }
 }

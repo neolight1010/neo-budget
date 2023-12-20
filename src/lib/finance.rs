@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use gregorian::{Month, YearMonth};
+use gregorian::YearMonth;
 
 pub type Price = f64;
 type ProductName = String;
@@ -20,13 +20,9 @@ impl Finance {
         }
     }
 
-    pub fn with_log(self, product: &str, price: Price) -> Self {
+    pub fn with_log(self, log: FinanceLog) -> Self {
         Self {
-            logs: self
-                .logs
-                .into_iter()
-                .chain(Some(FinanceLog::new(product, price)))
-                .collect(),
+            logs: self.logs.into_iter().chain(Some(log)).collect(),
             ..self
         }
     }
@@ -57,11 +53,11 @@ pub struct FinanceLog {
 }
 
 impl FinanceLog {
-    pub fn new(product: &str, price: f64) -> Self {
+    pub fn new(product: &str, price: f64, year_month: YearMonth) -> Self {
         FinanceLog {
             product: product.to_owned(),
             price,
-            year_month: YearMonth::new(2020, Month::January),
+            year_month,
         }
     }
 }

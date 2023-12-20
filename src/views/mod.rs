@@ -4,9 +4,10 @@ use cursive::{
     view::{Nameable, Resizable},
     views::{Dialog, EditView, LinearLayout, ListView, TextView},
 };
+use gregorian::{Month, YearMonth};
 
 use crate::siv::{get_finance_app, set_finance_app};
-use neo_budget::finance::Price;
+use neo_budget::finance::{FinanceLog, Price};
 
 pub fn add_log_view() -> Dialog {
     let layout = LinearLayout::new(cursive::direction::Orientation::Vertical)
@@ -40,7 +41,14 @@ pub fn add_log_view() -> Dialog {
                 Ok(price) => {
                     set_finance_app(
                         siv,
-                        current_app.with_finance(current_log.with_log(&add_log_name, price)),
+                        current_app.with_finance(
+                            // TODO Use real date
+                            current_log.with_log(FinanceLog::new(
+                                &add_log_name,
+                                price,
+                                YearMonth::new(2021, Month::January),
+                            )),
+                        ),
                     );
                     add_log_result.set_content("Log added successfully!");
                 }
