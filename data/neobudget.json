@@ -16,11 +16,15 @@
     "logs": [
         {
             "product": "bread",
-            "price": 10
+            "price": 10,
+            "year": 2023,
+            "month": 12
         },
         {
             "product": "eggs",
-            "price": 15
+            "price": 15,
+            "year": 2023,
+            "month": 12
         }
     ]
 }
