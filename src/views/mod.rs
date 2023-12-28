@@ -1,13 +1,13 @@
-use std::collections::HashMap;
-
 use cursive::{
     view::{Nameable, Resizable},
-    views::{Canvas, Dialog, EditView, LinearLayout, ListView, TextView},
+    views::{Canvas, Dialog, EditView, LinearLayout, TextView},
 };
 use gregorian::{Month, YearMonth};
 
 use crate::siv::{get_finance_app, set_finance_app};
 use neo_budget::finance::{FinanceLog, Price};
+
+pub mod show_logs;
 
 pub fn add_log_view() -> Dialog {
     let layout = LinearLayout::new(cursive::direction::Orientation::Vertical)
@@ -49,7 +49,7 @@ pub fn add_log_view() -> Dialog {
                 .expect("Couldn't find month_input")
                 .get_content()
                 .parse::<u8>()
-                .map(|month_str| Month::new(month_str));
+                .map(Month::new);
 
             let mut result_view = siv
                 .find_name::<TextView>("add_log_result")
@@ -83,18 +83,6 @@ pub fn add_log_view() -> Dialog {
             siv.pop_layer();
         })
         .h_align(cursive::align::HAlign::Center)
-}
-
-pub fn view_totals_view(totals: &HashMap<String, Price>) -> Dialog {
-    let mut list_view = ListView::new();
-
-    for (product, total) in totals {
-        list_view.add_child(product, TextView::new(format!("{total:.2}")));
-    }
-
-    Dialog::around(list_view).button("Back", |siv| {
-        siv.pop_layer();
-    })
 }
 
 pub fn save_view() -> Dialog {

@@ -1,10 +1,13 @@
+use std::collections::HashMap;
+
 use cursive::views::{Panel, SelectView};
 use neo_budget::repository::{EnvJSONFinanceRepository, FinanceRepository};
 use neo_budget::stats::FinanceStats;
 use siv::get_finance_app;
+use views::show_logs::show_labeled_logs_view;
 
 use crate::siv::FinanceApp;
-use crate::views::{add_log_view, save_view, view_totals_view};
+use crate::views::{add_log_view, save_view};
 
 mod siv;
 mod views;
@@ -55,11 +58,18 @@ fn menu_view() -> SelectView<MenuSelection> {
             }
 
             MenuSelection::ViewProductTotals => {
-                siv.add_layer(view_totals_view(&product_totals));
+                let mut labeled_logs = HashMap::new();
+                labeled_logs.insert("label".to_owned(), product_totals.clone());
+                labeled_logs.insert("label2".to_owned(), product_totals.clone());
+
+                siv.add_layer(show_labeled_logs_view(labeled_logs.clone()));
             }
 
             MenuSelection::ViewCategoryTotals => {
-                siv.add_layer(view_totals_view(&category_totals));
+                let mut labeled_logs = HashMap::new();
+                labeled_logs.insert("label".to_owned(), category_totals);
+
+                siv.add_layer(show_labeled_logs_view(labeled_logs.clone()));
             }
 
             MenuSelection::Save => {
