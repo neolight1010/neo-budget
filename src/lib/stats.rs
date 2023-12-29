@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use gregorian::YearMonth;
 
-use super::finance::{Finance, FinanceLog, Price};
+use super::finance::{Finance, Price};
 
 pub struct FinanceStats {
     finance: Finance,
@@ -13,28 +13,6 @@ type LabeledTotals = HashMap<String, Price>;
 impl FinanceStats {
     pub fn new(log: Finance) -> Self {
         Self { finance: log }
-    }
-
-    pub fn product_total(&self, product: &str) -> Price {
-        self.finance
-            .logs
-            .iter()
-            .filter(|log| log.product == product)
-            .map(|log| log.price)
-            .sum()
-    }
-
-    pub fn product_totals(&self) -> LabeledTotals {
-        let mut product_totals = HashMap::<String, Price>::new();
-        for FinanceLog { product, price, .. } in self.finance.logs.iter() {
-            if let Some(current_price) = product_totals.get(product) {
-                product_totals.insert(product.to_owned(), current_price + price);
-            } else {
-                product_totals.insert(product.to_owned(), price.to_owned());
-            }
-        }
-
-        product_totals
     }
 
     pub fn product_totals_by_year_month(&self) -> HashMap<YearMonth, LabeledTotals> {
@@ -54,22 +32,6 @@ impl FinanceStats {
         }
 
         result
-    }
-
-    pub fn category_total(&self, category: &str) -> Price {
-        self.finance
-            .logs
-            .iter()
-            .map(|log| {
-                if let Some(c) = self.finance.product_categories.get(&log.product) {
-                    if c == category {
-                        return log.price;
-                    }
-                }
-
-                0.0
-            })
-            .sum()
     }
 
     pub fn category_totals(&self) -> HashMap<String, Price> {
@@ -96,32 +58,6 @@ mod tests {
     use crate::finance::FinanceLog;
 
     use super::{Finance, FinanceStats};
-
-    #[test]
-    fn expenditure_log_product_total() {
-        let log = Finance::new().with_log(simple_log());
-        let stats = FinanceStats::new(log);
-
-        assert_eq!(stats.product_total("prod1"), 10.0);
-    }
-
-    #[test]
-    fn expenditure_log_category_total() {
-        let log = Finance::new()
-            .with_product("prod1", "cat1")
-            .with_log(simple_log());
-        let expenditure_log = FinanceStats::new(log);
-
-        assert_eq!(expenditure_log.category_total("cat1"), 10.0);
-    }
-
-    #[test]
-    fn product_totals() {
-        let log = Finance::new().with_log(simple_log());
-        let expenditure_log = FinanceStats::new(log);
-
-        assert_eq!(expenditure_log.product_totals().get("prod1"), Some(&10.0));
-    }
 
     #[test]
     fn product_totals_by_year_month() {
