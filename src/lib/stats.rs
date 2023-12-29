@@ -16,19 +16,35 @@ impl FinanceStats {
     }
 
     pub fn product_totals_by_year_month(&self) -> HashMap<YearMonth, LabeledTotals> {
+        self.group_logs_by_year_month_and_label(|product| Some(product.to_owned()))
+    }
+
+    pub fn category_totals_by_year_month(&self) -> HashMap<YearMonth, LabeledTotals> {
+        self.group_logs_by_year_month_and_label(|product| {
+            self.finance.product_categories.get(product).cloned()
+        })
+    }
+
+    fn group_logs_by_year_month_and_label(
+        &self,
+        label_fn: impl Fn(&str) -> Option<String>,
+    ) -> HashMap<YearMonth, LabeledTotals> {
         let mut result = HashMap::<YearMonth, LabeledTotals>::new();
 
         for log in &self.finance.logs {
             let year_month_map = result.entry(log.year_month).or_insert(HashMap::new());
+            let label = label_fn(&log.product);
 
-            let current_total = year_month_map
-                .entry(log.product.to_owned())
-                .or_insert(0.0)
-                .to_owned();
+            if let Some(label) = label {
+                let current_total = year_month_map
+                    .entry(label.clone())
+                    .or_insert(0.0)
+                    .to_owned();
 
-            let new_total = current_total + log.price;
+                let new_total = current_total + log.price;
 
-            year_month_map.insert(log.product.to_owned(), new_total);
+                year_month_map.insert(label.clone(), new_total);
+            }
         }
 
         result
@@ -92,6 +108,49 @@ mod tests {
                 .get(&YearMonth::new(2022, Month::February))
                 .unwrap()
                 .get("prod2")
+                .unwrap()
+                .to_owned(),
+            20.0
+        );
+    }
+
+    #[test]
+    fn category_totals_by_year_month() {
+        let finance = Finance::new()
+            .with_log(FinanceLog::new(
+                "prod1",
+                10.0,
+                YearMonth::new(2021, Month::January),
+            ))
+            .with_log(FinanceLog::new(
+                "prod2",
+                20.0,
+                YearMonth::new(2022, Month::February),
+            ))
+            .with_product("prod1", "cat1")
+            .with_product("prod2", "cat2");
+
+        let stats = FinanceStats::new(finance);
+
+        let totals_by_year_month = stats.category_totals_by_year_month();
+
+        println!("{:?}", totals_by_year_month);
+
+        assert_eq!(
+            totals_by_year_month
+                .get(&YearMonth::new(2021, Month::January))
+                .unwrap()
+                .get("cat1")
+                .unwrap()
+                .to_owned(),
+            10.0
+        );
+
+        assert_eq!(
+            totals_by_year_month
+                .get(&YearMonth::new(2022, Month::February))
+                .unwrap()
+                .get("cat2")
                 .unwrap()
                 .to_owned(),
             20.0
