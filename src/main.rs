@@ -49,7 +49,6 @@ fn menu_view() -> SelectView<MenuSelection> {
         let finance_repo = finance_app.finance_repo();
 
         let stats = FinanceStats::new(finance.clone());
-        let product_totals = stats.product_totals();
         let category_totals = stats.category_totals();
 
         match selection {
@@ -59,8 +58,9 @@ fn menu_view() -> SelectView<MenuSelection> {
 
             MenuSelection::ViewProductTotals => {
                 let mut labeled_logs = HashMap::new();
-                labeled_logs.insert("label".to_owned(), product_totals.clone());
-                labeled_logs.insert("label2".to_owned(), product_totals.clone());
+                for (year_month, product_totals) in stats.product_totals_by_year_month() {
+                    labeled_logs.insert(year_month.to_string(), product_totals);
+                }
 
                 siv.add_layer(show_labeled_logs_view(labeled_logs.clone()));
             }
