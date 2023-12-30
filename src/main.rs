@@ -1,8 +1,9 @@
 use std::collections::HashMap;
 
 use cursive::views::{Panel, SelectView};
+use gregorian::YearMonth;
 use neo_budget::repository::{EnvJSONFinanceRepository, FinanceRepository};
-use neo_budget::stats::FinanceStats;
+use neo_budget::stats::{FinanceStats, LabeledTotals};
 use siv::get_finance_app;
 use views::show_logs::show_labeled_logs_view;
 
@@ -49,7 +50,6 @@ fn menu_view() -> SelectView<MenuSelection> {
         let finance_repo = finance_app.finance_repo();
 
         let stats = FinanceStats::new(finance.clone());
-        let category_totals = stats.category_totals();
 
         match selection {
             MenuSelection::AddLog => {
@@ -57,28 +57,32 @@ fn menu_view() -> SelectView<MenuSelection> {
             }
 
             MenuSelection::ViewProductTotals => {
-                let mut labeled_logs = HashMap::new();
-                for (year_month, product_totals) in stats.product_totals_by_year_month() {
-                    labeled_logs.insert(year_month.to_string(), product_totals);
-                }
-
+                let labeled_logs = year_month_totals_display(stats.product_totals_by_year_month());
                 siv.add_layer(show_labeled_logs_view(labeled_logs.clone()));
             }
 
             MenuSelection::ViewCategoryTotals => {
-                let mut labeled_logs = HashMap::new();
-                labeled_logs.insert("label".to_owned(), category_totals);
-
+                let labeled_logs = year_month_totals_display(stats.category_totals_by_year_month());
                 siv.add_layer(show_labeled_logs_view(labeled_logs.clone()));
             }
 
             MenuSelection::Save => {
                 finance_repo.save(&finance).unwrap(); // TODO handle error
-
                 siv.add_layer(save_view());
             }
         }
     });
 
     menu
+}
+
+fn year_month_totals_display(
+    labeled_totals_by_year_month: HashMap<YearMonth, LabeledTotals>,
+) -> HashMap<String, LabeledTotals> {
+    let mut labeled_logs = HashMap::new();
+    for (year_month, product_totals) in labeled_totals_by_year_month {
+        labeled_logs.insert(year_month.to_string(), product_totals);
+    }
+
+    labeled_logs
 }

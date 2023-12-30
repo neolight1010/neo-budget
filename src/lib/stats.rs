@@ -8,7 +8,7 @@ pub struct FinanceStats {
     finance: Finance,
 }
 
-type LabeledTotals = HashMap<String, Price>;
+pub type LabeledTotals = HashMap<String, Price>;
 
 impl FinanceStats {
     pub fn new(log: Finance) -> Self {
