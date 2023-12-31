@@ -65,6 +65,7 @@ pub fn main_menu_view() -> Box<dyn View> {
                 }
             }),
     )
+    .title("NeoBudget - Main Menu")
     .into_boxed_view()
 }
 
