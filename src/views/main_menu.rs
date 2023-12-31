@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use cursive::view::IntoBoxedView;
 use cursive::views::{Panel, SelectView};
-use cursive::View;
+use cursive::{View, With};
 use gregorian::YearMonth;
 use neo_budget::repository::FinanceRepository;
 use neo_budget::stats::{FinanceStats, LabeledTotals};
@@ -22,51 +22,49 @@ enum MenuSelection {
 }
 
 pub fn main_menu_view() -> Box<dyn View> {
-    Panel::new(
-        SelectView::<MenuSelection>::new()
-            .item("Add log", MenuSelection::AddLog)
-            .item("Add products", MenuSelection::AddProducts)
-            .item("Product totals", MenuSelection::ViewProductTotals)
-            .item("Category totals", MenuSelection::ViewCategoryTotals)
-            .item("Save", MenuSelection::Save)
-            .on_submit(|siv, selection| {
-                let finance_app = get_finance_app(siv);
+    SelectView::<MenuSelection>::new()
+        .item("Add log", MenuSelection::AddLog)
+        .item("Add products", MenuSelection::AddProducts)
+        .item("Product totals", MenuSelection::ViewProductTotals)
+        .item("Category totals", MenuSelection::ViewCategoryTotals)
+        .item("Save", MenuSelection::Save)
+        .on_submit(|siv, selection| {
+            let finance_app = get_finance_app(siv);
 
-                let finance = finance_app.finance();
-                let finance_repo = finance_app.finance_repo();
+            let finance = finance_app.finance();
+            let finance_repo = finance_app.finance_repo();
 
-                let stats = FinanceStats::new(finance.clone());
+            let stats = FinanceStats::new(finance.clone());
 
-                match selection {
-                    MenuSelection::AddLog => {
-                        siv.add_layer(add_log_view());
-                    }
-
-                    MenuSelection::AddProducts => {
-                        siv.add_layer(add_products_view());
-                    }
-
-                    MenuSelection::ViewProductTotals => {
-                        let labeled_logs =
-                            year_month_totals_display(stats.product_totals_by_year_month());
-                        siv.add_layer(show_labeled_logs_view(labeled_logs.clone()));
-                    }
-
-                    MenuSelection::ViewCategoryTotals => {
-                        let labeled_logs =
-                            year_month_totals_display(stats.category_totals_by_year_month());
-                        siv.add_layer(show_labeled_logs_view(labeled_logs.clone()));
-                    }
-
-                    MenuSelection::Save => {
-                        finance_repo.save(&finance).unwrap(); // TODO handle error
-                        siv.add_layer(save_view());
-                    }
+            match selection {
+                MenuSelection::AddLog => {
+                    siv.add_layer(add_log_view());
                 }
-            }),
-    )
-    .title("NeoBudget - Main Menu")
-    .into_boxed_view()
+
+                MenuSelection::AddProducts => {
+                    siv.add_layer(add_products_view());
+                }
+
+                MenuSelection::ViewProductTotals => {
+                    let labeled_logs =
+                        year_month_totals_display(stats.product_totals_by_year_month());
+                    siv.add_layer(show_labeled_logs_view(labeled_logs.clone()));
+                }
+
+                MenuSelection::ViewCategoryTotals => {
+                    let labeled_logs =
+                        year_month_totals_display(stats.category_totals_by_year_month());
+                    siv.add_layer(show_labeled_logs_view(labeled_logs.clone()));
+                }
+
+                MenuSelection::Save => {
+                    finance_repo.save(&finance).unwrap(); // TODO handle error
+                    siv.add_layer(save_view());
+                }
+            }
+        })
+        .wrap_with(|view| Panel::new(view).title("NeoBudget - Main Menu"))
+        .into_boxed_view()
 }
 
 fn year_month_totals_display(
