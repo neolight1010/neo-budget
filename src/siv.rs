@@ -1,5 +1,6 @@
-use neo_budget::repository::{EnvJSONFinanceRepository, FinanceRepository};
+use cursive::Cursive;
 use neo_budget::finance::Finance;
+use neo_budget::repository::{EnvJSONFinanceRepository, FinanceRepository};
 
 #[derive(Clone)]
 pub struct FinanceApp<T: FinanceRepository> {
@@ -29,6 +30,20 @@ impl<T: FinanceRepository> FinanceApp<T> {
 }
 
 type ChosenFinanceRepository = EnvJSONFinanceRepository;
+
+pub fn update_finance_app(
+    siv: &mut cursive::Cursive,
+    update: impl Fn(
+        &mut Cursive,
+        FinanceApp<ChosenFinanceRepository>,
+    ) -> FinanceApp<ChosenFinanceRepository>,
+) -> Result<(), ()> {
+    let current_app = get_finance_app(siv);
+    let new_app = update(siv, current_app);
+    set_finance_app(siv, new_app);
+
+    Ok(())
+}
 
 pub fn get_finance_app(siv: &mut cursive::Cursive) -> FinanceApp<ChosenFinanceRepository> {
     siv.user_data::<FinanceApp<ChosenFinanceRepository>>()
