@@ -32,7 +32,7 @@ impl FinanceStats {
         let mut result = HashMap::<YearMonth, LabeledTotals>::new();
 
         for log in &self.finance.logs {
-            let year_month_map = result.entry(log.year_month).or_insert(HashMap::new());
+            let year_month_map = result.entry(log.year_month).or_default();
             let label = label_fn(&log.product);
 
             if let Some(label) = label {
