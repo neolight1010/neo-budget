@@ -5,10 +5,12 @@ use gregorian::YearMonth;
 use neo_budget::repository::{EnvJSONFinanceRepository, FinanceRepository};
 use neo_budget::stats::{FinanceStats, LabeledTotals};
 use siv::get_finance_app;
+
+use views::add_logs::add_log_view;
+use views::save::save_view;
 use views::show_logs::show_labeled_logs_view;
 
 use crate::siv::FinanceApp;
-use crate::views::{add_log_view, save_view};
 
 mod siv;
 mod views;
