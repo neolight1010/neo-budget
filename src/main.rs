@@ -32,56 +32,65 @@ fn main() -> Result<(), String> {
 
     let mut siv = cursive::default();
     siv.set_user_data(finance_app);
+    siv.set_global_callback('q', |siv| {
+        let popped_layer = siv.pop_layer();
 
-    siv.add_layer(Panel::new(menu_view()));
+        if popped_layer.is_none() {
+            siv.quit();
+        }
+    });
+
+    siv.add_layer(menu_view());
 
     siv.run();
 
     Ok(())
 }
 
-fn menu_view() -> SelectView<MenuSelection> {
-    SelectView::<MenuSelection>::new()
-        .item("Add log", MenuSelection::AddLog)
-        .item("Add products", MenuSelection::AddProducts)
-        .item("Product totals", MenuSelection::ViewProductTotals)
-        .item("Category totals", MenuSelection::ViewCategoryTotals)
-        .item("Save", MenuSelection::Save)
-        .on_submit(|siv, selection| {
-            let finance_app = get_finance_app(siv);
+fn menu_view() -> Panel<SelectView<MenuSelection>> {
+    Panel::new(
+        SelectView::<MenuSelection>::new()
+            .item("Add log", MenuSelection::AddLog)
+            .item("Add products", MenuSelection::AddProducts)
+            .item("Product totals", MenuSelection::ViewProductTotals)
+            .item("Category totals", MenuSelection::ViewCategoryTotals)
+            .item("Save", MenuSelection::Save)
+            .on_submit(|siv, selection| {
+                let finance_app = get_finance_app(siv);
 
-            let finance = finance_app.finance();
-            let finance_repo = finance_app.finance_repo();
+                let finance = finance_app.finance();
+                let finance_repo = finance_app.finance_repo();
 
-            let stats = FinanceStats::new(finance.clone());
+                let stats = FinanceStats::new(finance.clone());
 
-            match selection {
-                MenuSelection::AddLog => {
-                    siv.add_layer(add_log_view());
+                match selection {
+                    MenuSelection::AddLog => {
+                        siv.add_layer(add_log_view());
+                    }
+
+                    MenuSelection::AddProducts => {
+                        siv.add_layer(add_products_view());
+                    }
+
+                    MenuSelection::ViewProductTotals => {
+                        let labeled_logs =
+                            year_month_totals_display(stats.product_totals_by_year_month());
+                        siv.add_layer(show_labeled_logs_view(labeled_logs.clone()));
+                    }
+
+                    MenuSelection::ViewCategoryTotals => {
+                        let labeled_logs =
+                            year_month_totals_display(stats.category_totals_by_year_month());
+                        siv.add_layer(show_labeled_logs_view(labeled_logs.clone()));
+                    }
+
+                    MenuSelection::Save => {
+                        finance_repo.save(&finance).unwrap(); // TODO handle error
+                        siv.add_layer(save_view());
+                    }
                 }
-
-                MenuSelection::AddProducts => {
-                    siv.add_layer(add_products_view());
-                }
-
-                MenuSelection::ViewProductTotals => {
-                    let labeled_logs =
-                        year_month_totals_display(stats.product_totals_by_year_month());
-                    siv.add_layer(show_labeled_logs_view(labeled_logs.clone()));
-                }
-
-                MenuSelection::ViewCategoryTotals => {
-                    let labeled_logs =
-                        year_month_totals_display(stats.category_totals_by_year_month());
-                    siv.add_layer(show_labeled_logs_view(labeled_logs.clone()));
-                }
-
-                MenuSelection::Save => {
-                    finance_repo.save(&finance).unwrap(); // TODO handle error
-                    siv.add_layer(save_view());
-                }
-            }
-        })
+            }),
+    )
 }
 
 fn year_month_totals_display(
