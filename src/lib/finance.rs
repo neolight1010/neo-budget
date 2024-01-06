@@ -37,6 +37,10 @@ impl Finance {
             ..self
         }
     }
+
+    pub fn get_category_for(&self, product: &str) -> Option<Category> {
+        self.product_categories.get(product).cloned()
+    }
 }
 
 impl Default for Finance {

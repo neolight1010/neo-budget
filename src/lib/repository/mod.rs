@@ -174,13 +174,13 @@ mod tests {
 
     fn assert_finance_is_loaded_correctly(loaded_finance: &Finance) {
         assert_eq!(
-            loaded_finance.product_categories.get("prod1"),
-            Some(&"cat1".to_string())
+            loaded_finance.get_category_for("prod1"),
+            Some("cat1".to_string())
         );
 
         assert_eq!(
-            loaded_finance.product_categories.get("prod2"),
-            Some(&"cat2".to_string())
+            loaded_finance.get_category_for("prod2"),
+            Some("cat2".to_string())
         );
 
         assert_eq!(loaded_finance.logs[0].product, "prod1");

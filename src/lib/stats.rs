@@ -20,9 +20,7 @@ impl FinanceStats {
     }
 
     pub fn category_totals_by_year_month(&self) -> HashMap<YearMonth, LabeledTotals> {
-        self.group_logs_by_year_month_and_label(|product| {
-            self.finance.product_categories.get(product).cloned()
-        })
+        self.group_logs_by_year_month_and_label(|product| self.finance.get_category_for(product))
     }
 
     fn group_logs_by_year_month_and_label(
@@ -54,8 +52,8 @@ impl FinanceStats {
         let mut category_totals = HashMap::<String, Price>::new();
 
         for log in self.finance.logs.iter() {
-            if let Some(category) = self.finance.product_categories.get(&log.product) {
-                if let Some(current_price) = category_totals.get(category) {
+            if let Some(category) = self.finance.get_category_for(&log.product) {
+                if let Some(current_price) = category_totals.get(&category) {
                     category_totals.insert(category.to_owned(), current_price + log.price);
                 }
 
