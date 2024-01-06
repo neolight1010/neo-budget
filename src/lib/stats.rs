@@ -8,26 +8,39 @@ pub struct FinanceStats {
     finance: Finance,
 }
 
-pub type LabeledTotals = HashMap<String, Price>;
+#[derive(Clone)]
+pub struct GroupedTotals {
+    pub labeled: HashMap<String, Price>,
+    pub unlabeled: Price,
+}
+
+impl Default for GroupedTotals {
+    fn default() -> Self {
+        Self {
+            labeled: HashMap::new(),
+            unlabeled: 0.0,
+        }
+    }
+}
 
 impl FinanceStats {
     pub fn new(log: Finance) -> Self {
         Self { finance: log }
     }
 
-    pub fn product_totals_by_year_month(&self) -> HashMap<YearMonth, LabeledTotals> {
+    pub fn product_totals_by_year_month(&self) -> HashMap<YearMonth, GroupedTotals> {
         self.group_logs_by_year_month_and_label(|product| Some(product.to_owned()))
     }
 
-    pub fn category_totals_by_year_month(&self) -> HashMap<YearMonth, LabeledTotals> {
+    pub fn category_totals_by_year_month(&self) -> HashMap<YearMonth, GroupedTotals> {
         self.group_logs_by_year_month_and_label(|product| self.finance.get_category_for(product))
     }
 
     fn group_logs_by_year_month_and_label(
         &self,
         label_fn: impl Fn(&str) -> Option<String>,
-    ) -> HashMap<YearMonth, LabeledTotals> {
-        let mut result = HashMap::<YearMonth, LabeledTotals>::new();
+    ) -> HashMap<YearMonth, GroupedTotals> {
+        let mut result = HashMap::<YearMonth, GroupedTotals>::new();
 
         for log in &self.finance.logs {
             let year_month_map = result.entry(log.year_month).or_default();
@@ -35,13 +48,14 @@ impl FinanceStats {
 
             if let Some(label) = label {
                 let current_total = year_month_map
+                    .labeled
                     .entry(label.clone())
                     .or_insert(0.0)
                     .to_owned();
 
                 let new_total = current_total + log.price;
 
-                year_month_map.insert(label.clone(), new_total);
+                year_month_map.labeled.insert(label.clone(), new_total);
             }
         }
 
@@ -95,6 +109,7 @@ mod tests {
             totals_by_year_month
                 .get(&YearMonth::new(2021, Month::January))
                 .unwrap()
+                .labeled
                 .get("prod1")
                 .unwrap()
                 .to_owned(),
@@ -105,6 +120,7 @@ mod tests {
             totals_by_year_month
                 .get(&YearMonth::new(2022, Month::February))
                 .unwrap()
+                .labeled
                 .get("prod2")
                 .unwrap()
                 .to_owned(),
@@ -132,12 +148,11 @@ mod tests {
 
         let totals_by_year_month = stats.category_totals_by_year_month();
 
-        println!("{:?}", totals_by_year_month);
-
         assert_eq!(
             totals_by_year_month
                 .get(&YearMonth::new(2021, Month::January))
                 .unwrap()
+                .labeled
                 .get("cat1")
                 .unwrap()
                 .to_owned(),
@@ -148,6 +163,7 @@ mod tests {
             totals_by_year_month
                 .get(&YearMonth::new(2022, Month::February))
                 .unwrap()
+                .labeled
                 .get("cat2")
                 .unwrap()
                 .to_owned(),

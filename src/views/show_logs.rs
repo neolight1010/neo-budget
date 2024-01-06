@@ -4,13 +4,11 @@ use cursive::{
     view::Nameable,
     views::{Dialog, LinearLayout, ListView, Panel, SelectView, TextView},
 };
+use neo_budget::stats::GroupedTotals;
 
-use neo_budget::finance::Price;
+type LogCollection = HashMap<String, GroupedTotals>;
 
-type LabeledLogs = HashMap<String, ProductTotals>;
-type ProductTotals = HashMap<String, Price>;
-
-pub fn show_labeled_logs_view(log_collection: LabeledLogs) -> Dialog {
+pub fn show_grouped_totals_view(log_collection: LogCollection) -> Dialog {
     const LOG_LIST_VIEW_NAME: &str = "log_list";
 
     let mut log_list = ListView::new();
@@ -33,8 +31,9 @@ pub fn show_labeled_logs_view(log_collection: LabeledLogs) -> Dialog {
             &mut log_list,
             log_collection
                 .get(selected_label)
-                .unwrap_or(&HashMap::<String, f64>::new())
-                .clone(),
+                .cloned()
+                .unwrap_or_default()
+                .clone()
         );
     });
 
@@ -48,10 +47,10 @@ pub fn show_labeled_logs_view(log_collection: LabeledLogs) -> Dialog {
     })
 }
 
-fn reload_logs_list(log_list: &mut ListView, product_totals: ProductTotals) {
+fn reload_logs_list(log_list: &mut ListView, log_collection: GroupedTotals) {
     log_list.clear();
 
-    for (product, total) in &product_totals {
+    for (product, total) in &log_collection.labeled {
         log_list.add_child(product, TextView::new(format!("{total:.2}")));
     }
 }

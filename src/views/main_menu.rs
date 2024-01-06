@@ -5,12 +5,12 @@ use cursive::views::{Panel, SelectView};
 use cursive::{View, With};
 use gregorian::YearMonth;
 use neo_budget::repository::FinanceRepository;
-use neo_budget::stats::{FinanceStats, LabeledTotals};
+use neo_budget::stats::{FinanceStats, GroupedTotals};
 
 use super::add_logs::add_log_view;
 use super::add_products::add_products_view;
 use super::save::save_view;
-use super::show_logs::show_labeled_logs_view;
+use super::show_logs::show_grouped_totals_view;
 use crate::siv::get_finance_app;
 
 enum MenuSelection {
@@ -48,13 +48,13 @@ pub fn main_menu_view() -> Box<dyn View> {
                 MenuSelection::ViewProductTotals => {
                     let labeled_logs =
                         year_month_totals_display(stats.product_totals_by_year_month());
-                    siv.add_layer(show_labeled_logs_view(labeled_logs.clone()));
+                    siv.add_layer(show_grouped_totals_view(labeled_logs.clone()));
                 }
 
                 MenuSelection::ViewCategoryTotals => {
                     let labeled_logs =
                         year_month_totals_display(stats.category_totals_by_year_month());
-                    siv.add_layer(show_labeled_logs_view(labeled_logs.clone()));
+                    siv.add_layer(show_grouped_totals_view(labeled_logs.clone()));
                 }
 
                 MenuSelection::Save => {
@@ -68,8 +68,8 @@ pub fn main_menu_view() -> Box<dyn View> {
 }
 
 fn year_month_totals_display(
-    labeled_totals_by_year_month: HashMap<YearMonth, LabeledTotals>,
-) -> HashMap<String, LabeledTotals> {
+    labeled_totals_by_year_month: HashMap<YearMonth, GroupedTotals>,
+) -> HashMap<String, GroupedTotals> {
     let mut labeled_logs = HashMap::new();
     for (year_month, product_totals) in labeled_totals_by_year_month {
         labeled_logs.insert(year_month.to_string(), product_totals);
