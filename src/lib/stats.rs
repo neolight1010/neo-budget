@@ -61,22 +61,6 @@ impl FinanceStats {
 
         result
     }
-
-    pub fn category_totals(&self) -> HashMap<String, Price> {
-        let mut category_totals = HashMap::<String, Price>::new();
-
-        for log in self.finance.logs.iter() {
-            if let Some(category) = self.finance.get_category_for(&log.product) {
-                if let Some(current_price) = category_totals.get(&category) {
-                    category_totals.insert(category.to_owned(), current_price + log.price);
-                }
-
-                category_totals.insert(category.to_owned(), log.price);
-            }
-        }
-
-        category_totals
-    }
 }
 
 #[cfg(test)]
@@ -169,19 +153,5 @@ mod tests {
                 .to_owned(),
             20.0
         );
-    }
-
-    #[test]
-    fn category_totals() {
-        let log = Finance::new()
-            .with_product("prod1", "cat1")
-            .with_log(simple_log());
-        let expenditure_log = FinanceStats::new(log);
-
-        assert_eq!(expenditure_log.category_totals().get("cat1"), Some(&10.0));
-    }
-
-    fn simple_log() -> FinanceLog {
-        FinanceLog::new("prod1", 10.0, YearMonth::new(2021, Month::January))
     }
 }
