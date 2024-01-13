@@ -12,10 +12,7 @@ pub fn show_grouped_totals_view(log_collection: LogCollection) -> Dialog {
     const LOG_LIST_VIEW_NAME: &str = "log_list";
 
     let mut log_list = ListView::new();
-    reload_logs_list(
-        &mut log_list,
-        log_collection.values().next().unwrap().clone(),
-    );
+    reload_logs_list(&mut log_list, log_collection.values().next().cloned());
 
     let mut label_select_view = SelectView::new();
     for label in log_collection.keys() {
@@ -27,14 +24,7 @@ pub fn show_grouped_totals_view(log_collection: LogCollection) -> Dialog {
             .find_name::<ListView>(LOG_LIST_VIEW_NAME)
             .expect("Couldn't find log_list view");
 
-        reload_logs_list(
-            &mut log_list,
-            log_collection
-                .get(selected_label)
-                .cloned()
-                .unwrap_or_default()
-                .clone()
-        );
+        reload_logs_list(&mut log_list, log_collection.get(selected_label).cloned());
     });
 
     Dialog::around(
@@ -47,10 +37,20 @@ pub fn show_grouped_totals_view(log_collection: LogCollection) -> Dialog {
     })
 }
 
-fn reload_logs_list(log_list: &mut ListView, log_collection: GroupedTotals) {
+fn reload_logs_list(log_list: &mut ListView, log_collection: Option<GroupedTotals>) {
     log_list.clear();
 
-    for (product, total) in &log_collection.labeled {
-        log_list.add_child(product, TextView::new(format!("{total:.2}")));
+    if let Some(log_collection) = log_collection {
+        for (product, total) in &log_collection.labeled {
+            add_item_to_log_list(log_list, product, *total);
+        }
+
+        if log_collection.unlabeled > 0.0 {
+            add_item_to_log_list(log_list, "<others", log_collection.unlabeled);
+        }
     }
+}
+
+fn add_item_to_log_list(log_list: &mut ListView, label: &str, total: f64) {
+    log_list.add_child(label, TextView::new(format!("{total:.2}")));
 }
