@@ -46,7 +46,7 @@ fn reload_logs_list(log_list: &mut ListView, log_collection: Option<GroupedTotal
         }
 
         if log_collection.unlabeled > 0.0 {
-            add_item_to_log_list(log_list, "<others", log_collection.unlabeled);
+            add_item_to_log_list(log_list, "<others>", log_collection.unlabeled);
         }
     }
 }

@@ -43,11 +43,11 @@ impl FinanceStats {
         let mut result = HashMap::<YearMonth, GroupedTotals>::new();
 
         for log in &self.finance.logs {
-            let year_month_map = result.entry(log.year_month).or_default();
+            let grouped_totals = result.entry(log.year_month).or_default();
             let label = label_fn(&log.product);
 
             if let Some(label) = label {
-                let current_total = year_month_map
+                let current_total = grouped_totals
                     .labeled
                     .entry(label.clone())
                     .or_insert(0.0)
@@ -55,7 +55,9 @@ impl FinanceStats {
 
                 let new_total = current_total + log.price;
 
-                year_month_map.labeled.insert(label.clone(), new_total);
+                grouped_totals.labeled.insert(label.clone(), new_total);
+            } else {
+                grouped_totals.unlabeled += log.price;
             }
         }
 
@@ -125,6 +127,11 @@ mod tests {
                 20.0,
                 YearMonth::new(2022, Month::February),
             ))
+            .with_log(FinanceLog::new(
+                "prod3",
+                30.0,
+                YearMonth::new(2022, Month::March),
+            ))
             .with_product("prod1", "cat1")
             .with_product("prod2", "cat2");
 
@@ -137,10 +144,8 @@ mod tests {
                 .get(&YearMonth::new(2021, Month::January))
                 .unwrap()
                 .labeled
-                .get("cat1")
-                .unwrap()
-                .to_owned(),
-            10.0
+                .get("cat1"),
+            Some(&10.0)
         );
 
         assert_eq!(
@@ -148,10 +153,16 @@ mod tests {
                 .get(&YearMonth::new(2022, Month::February))
                 .unwrap()
                 .labeled
-                .get("cat2")
+                .get("cat2"),
+            Some(&20.0)
+        );
+
+        assert_eq!(
+            totals_by_year_month
+                .get(&YearMonth::new(2022, Month::March))
                 .unwrap()
-                .to_owned(),
-            20.0
+                .unlabeled,
+            30.0
         );
     }
 }
