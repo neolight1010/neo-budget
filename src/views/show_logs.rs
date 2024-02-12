@@ -5,18 +5,32 @@ use cursive::{
     views::{Dialog, LinearLayout, ListView, Panel, SelectView, TextView},
 };
 use im::Vector;
+use itertools::Itertools;
 use neo_budget::stats::GroupedTotals;
 
 type LogCollection = HashMap<String, GroupedTotals>;
 
 pub fn show_grouped_totals_view(log_collection: LogCollection) -> Dialog {
-    const LOG_LIST_VIEW_NAME: &str = "log_list";
-
     let mut log_list = ListView::new();
     reload_logs_list(&mut log_list, log_collection.values().next().cloned());
 
+    let (label_select_view, label_select_view_name) = build_select_view(log_collection);
+
+    Dialog::around(
+        LinearLayout::horizontal()
+            .child(Panel::new(label_select_view))
+            .child(Panel::new(log_list.with_name(label_select_view_name))),
+    )
+    .button("Back", |siv| {
+        siv.pop_layer();
+    })
+}
+
+fn build_select_view(log_collection: HashMap<String, GroupedTotals>) -> (SelectView, String) {
+    const LOG_LIST_VIEW_NAME: &str = "log_list";
+
     let mut label_select_view = SelectView::new();
-    for label in log_collection.keys() {
+    for label in log_collection.keys().sorted() {
         label_select_view.add_item(label.clone(), label.clone());
     }
 
@@ -27,15 +41,7 @@ pub fn show_grouped_totals_view(log_collection: LogCollection) -> Dialog {
 
         reload_logs_list(&mut log_list, log_collection.get(selected_label).cloned());
     });
-
-    Dialog::around(
-        LinearLayout::horizontal()
-            .child(Panel::new(label_select_view))
-            .child(Panel::new(log_list.with_name(LOG_LIST_VIEW_NAME))),
-    )
-    .button("Back", |siv| {
-        siv.pop_layer();
-    })
+    (label_select_view, LOG_LIST_VIEW_NAME.to_owned())
 }
 
 fn reload_logs_list(log_list: &mut ListView, log_collection: Option<GroupedTotals>) {
