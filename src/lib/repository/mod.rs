@@ -8,8 +8,23 @@ use crate::finance::Finance;
 mod json;
 
 pub trait FinanceRepository: Clone {
-    fn load(&self) -> Result<Finance, String>;
+    fn load(&self) -> Result<Finance, FinanceRepositoryLoadError>;
     fn save(&self, finance: &Finance) -> Result<(), String>;
+}
+
+#[derive(Debug, PartialEq)]
+pub enum FinanceRepositoryLoadError {
+    DoesNotExist(String),
+    Corrupted(String),
+}
+
+impl From<FinanceRepositoryLoadError> for String {
+    fn from(error: FinanceRepositoryLoadError) -> Self {
+        match error {
+            FinanceRepositoryLoadError::DoesNotExist(s) => s.to_owned(),
+            FinanceRepositoryLoadError::Corrupted(s) => s.to_owned(),
+        }
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -27,13 +42,19 @@ impl EnvJSONFinanceRepository {
 }
 
 impl FinanceRepository for EnvJSONFinanceRepository {
-    fn load(&self) -> Result<Finance, String> {
+    fn load(&self) -> Result<Finance, FinanceRepositoryLoadError> {
         let json_path = &self.json_path;
-        let json_content = fs::read_to_string(json_path)
-            .map_err(|_| format!("Couldn't read Finance file {json_path}. Does it exist?"))?;
+        let json_content = fs::read_to_string(json_path).map_err(|_| {
+            FinanceRepositoryLoadError::DoesNotExist(format!(
+                "Couldn't read Finance file {json_path}. Does it exist?"
+            ))
+        })?;
 
         let json_finance: JSONFinance = serde_json::from_str(&json_content).map_err(|_| {
-            "Error parsing Finance from JSON content. Does it have the correct structure?"
+            FinanceRepositoryLoadError::Corrupted(
+                "Error parsing Finance from JSON content. Does it have the correct structure?"
+                    .to_owned(),
+            )
         })?;
 
         Ok(json_finance.to_finance())
@@ -105,10 +126,7 @@ mod tests {
                 EnvJSONFinanceRepository::from_env().expect("Didn't expect from_env to fail!");
             let load_err = repo.load().expect_err("Expected load to fail!");
 
-            assert_eq!(
-                load_err,
-                "Error parsing Finance from JSON content. Does it have the correct structure?"
-            );
+            assert!(matches!(load_err, FinanceRepositoryLoadError::Corrupted(_)));
         })
     }
 
@@ -119,10 +137,10 @@ mod tests {
         let repo = EnvJSONFinanceRepository::from_env().expect("Didn't expect from_env to fail!");
         let load_err = repo.load().expect_err("Expected load to fail!");
 
-        assert_eq!(
+        assert!(matches!(
             load_err,
-            "Couldn't read Finance file inexistent-file.json. Does it exist?"
-        );
+            FinanceRepositoryLoadError::DoesNotExist(_)
+        ));
     }
 
     #[test]
