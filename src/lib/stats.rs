@@ -69,7 +69,7 @@ impl FinanceStats {
 mod tests {
     use gregorian::{Month, YearMonth};
 
-    use crate::finance::FinanceLog;
+    use crate::finance::{FinanceLog, Product};
 
     use super::{Finance, FinanceStats};
 
@@ -132,8 +132,8 @@ mod tests {
                 30.0,
                 YearMonth::new(2022, Month::March),
             ))
-            .with_product("prod1", "cat1")
-            .with_product("prod2", "cat2");
+            .with_product(&Product::new("prod1", "cat1"))
+            .with_product(&Product::new("prod2", "cat2"));
 
         let stats = FinanceStats::new(finance);
 

@@ -1,7 +1,7 @@
 use gregorian::{Month, Year};
 use serde::{Deserialize, Serialize};
 
-use crate::finance::{Finance, FinanceLog};
+use crate::finance::{Finance, FinanceLog, Product};
 
 #[derive(Deserialize, Serialize)]
 pub struct JSONFinance {
@@ -23,11 +23,11 @@ impl JSONFinance {
                 })
                 .collect(),
             products: finance
-                .product_categories
+                .products()
                 .iter()
-                .map(|(product, category)| JSONProduct {
-                    product: product.clone(),
-                    category: category.clone(),
+                .map(|(product_id, product)| JSONProduct {
+                    product: product_id.to_owned(), // TODO Use product.name
+                    category: product.category.to_owned(),
                 })
                 .collect(),
         }
@@ -35,8 +35,11 @@ impl JSONFinance {
 
     pub fn to_finance(&self) -> Finance {
         let mut finance = Finance::new();
-        for json_product in self.products.iter() {
-            finance = finance.with_product(&json_product.product, &json_product.category);
+        for json_product in &self.products {
+            finance = finance.with_product(&Product::new(
+                &json_product.product, // TODO Add product.id to json_product
+                &json_product.category,
+            ));
         }
 
         for json_log in self.logs.iter() {

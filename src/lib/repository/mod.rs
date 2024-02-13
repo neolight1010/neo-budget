@@ -66,7 +66,7 @@ mod tests {
     use gregorian::{Month, Year, YearMonth};
     use tempfile::TempDir;
 
-    use crate::finance::FinanceLog;
+    use crate::finance::{FinanceLog, Product};
 
     use super::*;
 
@@ -133,7 +133,7 @@ mod tests {
 
         let repo = EnvJSONFinanceRepository::from_env().expect("Didn't expect from_env to fail!");
         let finance = Finance::new()
-            .with_product("prod1", "cat1")
+            .with_product(&Product::new("prod1", "cat1")) // TODO Use name
             .with_log(FinanceLog::new(
                 "prod1",
                 10.0,

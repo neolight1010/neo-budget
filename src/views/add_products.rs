@@ -3,6 +3,7 @@ use cursive::{
     views::{Dialog, EditView, LinearLayout, TextView, ViewRef},
     Cursive, With,
 };
+use neo_budget::finance::Product;
 
 use crate::siv::update_finance_app;
 
@@ -50,7 +51,7 @@ fn submit_button_action(siv: &mut Cursive) {
 
         match (product, category) {
             (Some(product), Some(category)) => {
-                app.with_finance(current_finance.with_product(&product, &category))
+                app.with_finance(current_finance.with_product(&Product::new(&product, &category)))
             }
 
             _ => {
